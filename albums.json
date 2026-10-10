@@ -64,5 +64,16 @@
         "src": "MODLITWA.mp3"
       }
     ]
+  },
+  {
+    "title": "HIPHOP X",
+    "year": "2026",
+    "cover": "HIPHOPX.png",
+    "tracks": [
+      {
+        "title": "Modlitwa Polaka",
+        "src": "MODLITWA.mp3"
+      }
+    ]
   }
 ]
