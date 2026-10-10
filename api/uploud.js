@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   }
 
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = 'JonasZwick'; 
+  const REPO_OWNER = 'JonaszWick'; 
   const REPO_NAME = 'ICH-SZESCIU';  
 
   if (!GITHUB_TOKEN) {
