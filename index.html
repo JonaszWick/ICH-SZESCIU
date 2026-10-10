@@ -19,7 +19,6 @@
     }
 
     main { width: 100%; max-width: 700px; display: flex; flex-direction: column; align-items: center; }
-
     .header-container { text-align: center; margin-bottom: 20px; width: 100%; }
     .site-title { font-size: 28px; font-weight: bold; letter-spacing: 2px; margin-bottom: 20px; }
     .gif-container { margin-bottom: 30px; }
@@ -79,6 +78,241 @@
     audio { height: 30px; max-width: 300px; width: 100%; }
 
     #opis p { font-size: 18px; color: #ffffff; text-align: center; }
+
+    /* ==================== GENERATOR ==================== */
+    #generator-modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: flex-start;
+      padding: 30px 15px;
+      overflow-y: auto;
+      z-index: 9999;
+      font-family: Consolas, Monaco, monospace;
+    }
+    #generator-modal.open { display: flex; }
+
+    .gen-box {
+      background: #0a0a0a;
+      border: 1px solid #444;
+      width: 100%;
+      max-width: 720px;
+      padding: 25px;
+    }
+
+    .gen-box h2 {
+      font-size: 18px;
+      margin-bottom: 5px;
+      color: #fff;
+      font-family: inherit;
+    }
+    .gen-box .hint {
+      font-size: 12px;
+      color: #888;
+      margin-bottom: 20px;
+    }
+    .gen-close {
+      float: right;
+      background: transparent;
+      border: 1px solid #444;
+      color: #fff;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+    }
+    .gen-close:hover { background: #500; }
+
+    .gen-tabs {
+      display: flex;
+      border-bottom: 1px solid #333;
+      margin-bottom: 20px;
+    }
+    .gen-tab {
+      background: transparent;
+      border: none;
+      color: #888;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .gen-tab.active { color: #fff; border-bottom-color: #fff; }
+
+    .gen-panel { display: none; }
+    .gen-panel.active { display: block; }
+
+    .gen-box label {
+      display: block;
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 5px;
+      margin-top: 15px;
+    }
+    .gen-box input[type="text"],
+    .gen-box select {
+      width: 100%;
+      padding: 8px 10px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #444;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .gen-box input[type="file"] {
+      width: 100%;
+      padding: 8px;
+      background: #000;
+      color: #fff;
+      border: 1px dashed #666;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .gen-box input[type="file"]::file-selector-button {
+      background: #222;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .gen-file-list {
+      margin-top: 15px;
+      border: 1px solid #333;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    .gen-file-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .gen-file-row:last-child { border-bottom: none; }
+    .gen-file-row .filename {
+      flex: 0 0 40%;
+      font-size: 11px;
+      color: #888;
+      word-break: break-all;
+      font-family: Consolas, monospace;
+    }
+    .gen-file-row input {
+      flex: 1;
+      padding: 5px 8px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #444;
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .gen-file-row .remove {
+      background: #300;
+      color: #fff;
+      border: none;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .gen-empty {
+      padding: 20px;
+      text-align: center;
+      color: #555;
+      font-size: 12px;
+    }
+
+    .gen-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #333;
+    }
+    .gen-actions button {
+      padding: 10px 18px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      border: 1px solid #555;
+      background: #111;
+      color: #fff;
+    }
+    .gen-actions button.primary { background: #fff; color: #000; border-color: #fff; font-weight: bold; }
+    .gen-actions button.primary:hover { background: #ddd; }
+    .gen-actions button:hover { background: #222; }
+    .gen-actions button.primary:hover { background: #ddd; }
+
+    .gen-output {
+      margin-top: 20px;
+    }
+    .gen-output textarea {
+      width: 100%;
+      min-height: 300px;
+      padding: 12px;
+      background: #000;
+      color: #6f6;
+      border: 1px solid #444;
+      font-family: Consolas, Monaco, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      resize: vertical;
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .gen-toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #0a0;
+      color: #fff;
+      padding: 10px 20px;
+      font-family: Consolas, monospace;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+      z-index: 10000;
+    }
+    .gen-toast.show { opacity: 1; }
+
+    .gen-info {
+      background: #1a1a00;
+      border: 1px solid #666600;
+      padding: 10px;
+      font-size: 11px;
+      color: #ffd700;
+      margin-top: 15px;
+      line-height: 1.5;
+    }
+
+    .mode-toggle {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .mode-toggle button {
+      flex: 1;
+      padding: 8px;
+      background: #111;
+      color: #888;
+      border: 1px solid #444;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12px;
+    }
+    .mode-toggle button.active { background: #fff; color: #000; border-color: #fff; }
   </style>
 </head>
 <body>
@@ -113,13 +347,85 @@
     </section>
   </main>
 
+  <!-- ==================== GENERATOR MODAL ==================== -->
+  <div id="generator-modal">
+    <div class="gen-box">
+      <button class="gen-close" onclick="closeGenerator()">✕ Zamknij</button>
+      <h2>⚙️ Generator albums.json</h2>
+      <div class="hint">Wpisz 6969 na klawiaturze, żeby otworzyć/zamknąć. Nic nie jest wysyłane na serwer.</div>
+
+      <div class="gen-tabs">
+        <button class="gen-tab active" onclick="switchTab('new')">➕ Nowy album</button>
+        <button class="gen-tab" onclick="switchTab('existing')">🎵 Dodaj do istniejącego</button>
+      </div>
+
+      <!-- TAB 1: NOWY ALBUM -->
+      <div class="gen-panel active" id="panel-new">
+        <label>Tytuł albumu</label>
+        <input type="text" id="gen-title" placeholder="np. BAKTERIA MUSIC">
+
+        <label>Rok wydania</label>
+        <input type="text" id="gen-year" placeholder="np. 2026">
+
+        <label>Nazwa pliku okładki (na GitHubie)</label>
+        <input type="text" id="gen-cover" placeholder="np. okladka1.jpg">
+
+        <label>Pliki MP3 (możesz wybrać wiele naraz)</label>
+        <input type="file" id="gen-files" accept="audio/*" multiple>
+      </div>
+
+      <!-- TAB 2: DODAJ DO ISTNIEJĄCEGO -->
+      <div class="gen-panel" id="panel-existing">
+        <label>Wybierz album</label>
+        <select id="gen-existing-select"></select>
+
+        <label>Pliki MP3 do dodania</label>
+        <input type="file" id="gen-files-existing" accept="audio/*" multiple>
+      </div>
+
+      <!-- WSPÓLNA LISTA PLIKÓW -->
+      <div class="gen-file-list" id="gen-file-list">
+        <div class="gen-empty">Wybierz pliki powyżej...</div>
+      </div>
+
+      <div class="gen-info">
+        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Nazwa pliku w <code>src</code> pozostaje taka jak na dysku.
+      </div>
+
+      <div class="gen-actions">
+        <div class="mode-toggle" style="width:100%;">
+          <button class="active" id="mode-full" onclick="setGenMode('full')">Pokaż cały plik</button>
+          <button id="mode-frag" onclick="setGenMode('frag')">Tylko nowy fragment</button>
+        </div>
+      </div>
+
+      <div class="gen-actions">
+        <button class="primary" onclick="generateOutput()">🚀 Generuj</button>
+        <button onclick="copyOutput()">📋 Kopiuj do schowka</button>
+      </div>
+
+      <div class="gen-output">
+        <textarea id="gen-output" readonly placeholder="Tutaj pojawi się wygenerowany JSON..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="gen-toast" id="gen-toast">✅ Skopiowano!</div>
+
   <script>
+    let albumsData = [];
+    let genFiles = []; // { file, title }
+    let genTab = 'new';
+    let genMode = 'full';
+
+    // ===================== ŁADOWANIE ALBUMÓW =====================
+
     async function loadAlbums() {
       const container = document.getElementById('albums-container');
       try {
         const res = await fetch('albums.json?' + Date.now());
         if (!res.ok) throw new Error('Nie znaleziono albums.json');
-        const albumsData = await res.json();
+        albumsData = await res.json();
 
         if (!albumsData.length) {
           container.innerHTML = '<p style="text-align:center; color:#888;">Brak albumów.</p>';
@@ -176,10 +482,219 @@
       if (s) s.classList.add('active');
     }
 
+    // ===================== KEYLISTENER 6969 =====================
+
+    let typed = '';
+    document.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, textarea, select')) return;
+      if (e.key.length !== 1) return;
+      typed += e.key;
+      if (typed.length > 4) typed = typed.slice(-4);
+      if (typed === '6969') {
+        typed = '';
+        toggleGenerator();
+      }
+    });
+
+    // ===================== GENERATOR =====================
+
+    function toggleGenerator() {
+      const modal = document.getElementById('generator-modal');
+      if (modal.classList.contains('open')) closeGenerator();
+      else openGenerator();
+    }
+
+    function openGenerator() {
+      const modal = document.getElementById('generator-modal');
+      modal.classList.add('open');
+      refreshExistingSelect();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeGenerator() {
+      document.getElementById('generator-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeGenerator();
+    });
+
+    function switchTab(tab) {
+      genTab = tab;
+      document.querySelectorAll('.gen-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.gen-panel').forEach(p => p.classList.remove('active'));
+
+      if (tab === 'new') {
+        document.querySelectorAll('.gen-tab')[0].classList.add('active');
+        document.getElementById('panel-new').classList.add('active');
+      } else {
+        document.querySelectorAll('.gen-tab')[1].classList.add('active');
+        document.getElementById('panel-existing').classList.add('active');
+        refreshExistingSelect();
+      }
+
+      genFiles = [];
+      renderGenFiles();
+      document.getElementById('gen-files').value = '';
+      document.getElementById('gen-files-existing').value = '';
+    }
+
+    function refreshExistingSelect() {
+      const select = document.getElementById('gen-existing-select');
+      if (!select) return;
+      select.innerHTML = '';
+      albumsData.forEach((album, i) => {
+        select.innerHTML += `<option value="${i}">${escapeHtml(album.title)} (${escapeHtml(album.year)})</option>`;
+      });
+      if (!albumsData.length) {
+        select.innerHTML = '<option>Brak albumów</option>';
+      }
+    }
+
+    function handleGenFiles(fileList) {
+      for (const file of fileList) {
+        const title = file.name.replace(/\.[^/.]+$/, ''); // usuń rozszerzenie
+        genFiles.push({ file, title });
+      }
+      renderGenFiles();
+    }
+
+    function renderGenFiles() {
+      const container = document.getElementById('gen-file-list');
+      if (!genFiles.length) {
+        container.innerHTML = '<div class="gen-empty">Wybierz pliki powyżej...</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      genFiles.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'gen-file-row';
+        row.innerHTML = `
+          <span class="filename">${escapeHtml(item.file.name)}</span>
+          <input type="text" value="${escapeHtml(item.title)}" oninput="updateTitle(${index}, this.value)">
+          <button class="remove" onclick="removeGenFile(${index})">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function updateTitle(index, value) {
+      if (genFiles[index]) genFiles[index].title = value;
+    }
+
+    function removeGenFile(index) {
+      genFiles.splice(index, 1);
+      renderGenFiles();
+    }
+
+    function setGenMode(mode) {
+      genMode = mode;
+      document.getElementById('mode-full').classList.toggle('active', mode === 'full');
+      document.getElementById('mode-frag').classList.toggle('active', mode === 'frag');
+    }
+
+    function generateOutput() {
+      const out = document.getElementById('gen-output');
+
+      if (genTab === 'new') {
+        const title = document.getElementById('gen-title').value.trim();
+        const year = document.getElementById('gen-year').value.trim();
+        const cover = document.getElementById('gen-cover').value.trim();
+
+        if (!title || !year || !cover) {
+          out.value = '⚠️ Uzupełnij tytuł albumu, rok i nazwę okładki.';
+          return;
+        }
+        if (!genFiles.length) {
+          out.value = '⚠️ Wybierz przynajmniej jeden plik MP3.';
+          return;
+        }
+
+        const newAlbum = {
+          title,
+          year,
+          cover,
+          tracks: genFiles.map(f => ({
+            title: f.title,
+            src: f.file.name,
+          })),
+        };
+
+        if (genMode === 'full') {
+          const full = [...albumsData, newAlbum];
+          out.value = JSON.stringify(full, null, 2);
+        } else {
+          out.value = JSON.stringify(newAlbum, null, 2);
+        }
+
+      } else {
+        const select = document.getElementById('gen-existing-select');
+        const index = parseInt(select.value, 10);
+
+        if (isNaN(index) || !albumsData[index]) {
+          out.value = '⚠️ Wybierz istniejący album.';
+          return;
+        }
+        if (!genFiles.length) {
+          out.value = '⚠️ Wybierz przynajmniej jeden plik MP3.';
+          return;
+        }
+
+        const newTracks = genFiles.map(f => ({
+          title: f.title,
+          src: f.file.name,
+        }));
+
+        if (genMode === 'full') {
+          const full = JSON.parse(JSON.stringify(albumsData));
+          full[index].tracks = full[index].tracks.concat(newTracks);
+          out.value = JSON.stringify(full, null, 2);
+        } else {
+          // pokaż tylko nowe utwory jako fragment
+          out.value = JSON.stringify(newTracks, null, 2);
+        }
+      }
+    }
+
+    async function copyOutput() {
+      const out = document.getElementById('gen-output');
+      if (!out.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(out.value);
+        showToast('✅ Skopiowano do schowka!');
+      } catch (err) {
+        // fallback
+        out.select();
+        document.execCommand('copy');
+        showToast('✅ Skopiowano!');
+      }
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('gen-toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    // ===================== PODPIĘCIE INPUTÓW =====================
+
     window.addEventListener('DOMContentLoaded', () => {
       loadAlbums();
       hideAllSections();
       showSection('dyskografia');
+
+      document.getElementById('gen-files').addEventListener('change', (e) => {
+        handleGenFiles(e.target.files);
+        e.target.value = '';
+      });
+
+      document.getElementById('gen-files-existing').addEventListener('change', (e) => {
+        handleGenFiles(e.target.files);
+        e.target.value = '';
+      });
     });
   </script>
 
