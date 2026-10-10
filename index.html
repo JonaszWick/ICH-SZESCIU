@@ -99,6 +99,7 @@
       color: #888;
       font-size: 12px;
       text-decoration: none;
+      cursor: pointer;
     }
     footer a:hover {
       color: #fff;
@@ -194,7 +195,14 @@
       padding: 20px;
       margin-top: 20px;
     }
-    .admin-form input, .admin-form select, .admin-form button {
+
+    .admin-form h3 {
+      margin-bottom: 15px;
+    }
+
+    .admin-form input,
+    .admin-form select,
+    .admin-form button {
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
@@ -202,21 +210,37 @@
       color: #fff;
       border: 1px solid #444;
       font-family: inherit;
+      font-size: 14px;
     }
+
     .admin-form button {
       background: #fff;
       color: #000;
       font-weight: bold;
       cursor: pointer;
     }
+
+    .admin-form button:hover {
+      background: #ddd;
+    }
+
+    .admin-form label {
+      display: block;
+      font-size: 13px;
+      color: #aaa;
+      margin-bottom: 5px;
+    }
+
     .track-input-group {
       display: flex;
       gap: 10px;
       margin-bottom: 10px;
     }
+
     .track-input-group input {
       margin-bottom: 0;
     }
+
     .admin-album-item {
       display: flex;
       justify-content: space-between;
@@ -225,6 +249,34 @@
       border-bottom: 1px solid #222;
       font-size: 14px;
       margin-bottom: 8px;
+    }
+
+    .upload-status {
+      font-size: 13px;
+      color: #aaa;
+      margin-top: 10px;
+      word-break: break-all;
+    }
+
+    .upload-status.success {
+      color: #6f6;
+    }
+
+    .upload-status.error {
+      color: #f66;
+    }
+
+    #login-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
     }
   </style>
 </head>
@@ -256,9 +308,7 @@
     <!-- Sekcja Dyskografii -->
     <section id="dyskografia" class="content-section">
       <h2 class="section-title">Dyskografia</h2>
-      <div id="albums-container">
-        <!-- Tutaj dynamicznie ładują się albumy -->
-      </div>
+      <div id="albums-container"></div>
     </section>
 
     <!-- Sekcja Opisu -->
@@ -270,57 +320,63 @@
     <!-- Sekcja Panelu Admina -->
     <section id="panel-admina" class="content-section">
       <h2 class="section-title">Panel Administratora</h2>
-      
-      <!-- 1. Dodawanie nowego albumu -->
+
+      <!-- Upload plików na Vercel Blob -->
       <div class="admin-form">
-        <h3>Dodaj nowy album (zaktualizuj albums.json)</h3>
-        <br>
+        <h3>1. Wgraj plik (MP3 / okładka)</h3>
+        <label>Wybierz plik z komputera:</label>
+        <input type="file" id="blob-upload-file" accept="audio/*,image/*">
+        <label>Ścieżka na serwerze (np. muzyka/nowy-hit.mp3):</label>
+        <input type="text" id="blob-upload-path" placeholder="muzyka/nowy-hit.mp3">
+        <button type="button" onclick="uploadToBlob()">Wgraj plik</button>
+        <div id="blob-upload-status" class="upload-status"></div>
+      </div>
+
+      <!-- Dodawanie nowego albumu -->
+      <div class="admin-form">
+        <h3>2. Dodaj nowy album</h3>
         <form id="add-album-form" onsubmit="handleNewAlbum(event)">
           <label>Tytuł albumu:</label>
           <input type="text" id="album-title" required placeholder="np. HIPHOP X">
-          
+
           <label>Rok wydania:</label>
           <input type="text" id="album-year" required placeholder="np. 2026">
-          
-          <label>Nazwa pliku okładki (wgranej wcześniej na GitHub, np. okladka2.jpg):</label>
-          <input type="text" id="album-cover-filename" required placeholder="okladka2.jpg">
-          
-          <h3>Lista utworów (nazwy plików MP3 z GitHuba)</h3>
-          <br>
+
+          <label>URL okładki (wklej z uploadu powyżej):</label>
+          <input type="text" id="album-cover-url" required placeholder="https://....public.blob.vercel-storage.com/okladki/okladka2.jpg">
+
+          <label>Lista utworów:</label>
           <div id="tracks-inputs">
             <div class="track-input-group">
-              <input type="text" placeholder="Tytuł wyświetlany (np. 1. Hit)" class="t-title" required>
-              <input type="text" placeholder="Nazwa pliku MP3 (np. hit.mp3)" class="t-filename" required>
+              <input type="text" placeholder="Tytuł (np. 1. Hit)" class="t-title" required>
+              <input type="text" placeholder="URL MP3 (https://...)" class="t-src" required>
             </div>
           </div>
-          <button type="button" onclick="addTrackInput()" style="background:#222; color:#fff; margin-bottom:15px;">+ Dodaj kolejny utwór</button>
-          
-          <button type="submit">Zapisz zmiany w albums.json</button>
+          <button type="button" onclick="addTrackInput()" style="background:#222; color:#fff;">+ Dodaj kolejny utwór</button>
+          <button type="submit">Zapisz album</button>
         </form>
       </div>
 
-      <!-- 2. Dodawanie piosenki do istniejącego albumu -->
+      <!-- Dodawanie piosenki do istniejącego albumu -->
       <div class="admin-form">
-        <h3>Dodaj piosenkę do istniejącego albumu</h3>
-        <br>
+        <h3>3. Dodaj piosenkę do istniejącego albumu</h3>
         <form onsubmit="handleAddTrackToAlbum(event)">
           <label>Wybierz album:</label>
           <select id="target-album-select" required></select>
 
-          <label>Tytuł utworu (wyświetlany):</label>
+          <label>Tytuł utworu:</label>
           <input type="text" id="extra-track-title" required placeholder="np. Nowy Hit">
 
-          <label>Nazwa pliku MP3 (wgranego na GitHub):</label>
-          <input type="text" id="extra-track-filename" required placeholder="np. nowy_hit.mp3">
+          <label>URL MP3 (wklej z uploadu powyżej):</label>
+          <input type="text" id="extra-track-src" required placeholder="https://....public.blob.vercel-storage.com/muzyka/nowy.mp3">
 
-          <button type="submit">Dodaj piosenkę do albumu</button>
+          <button type="submit">Dodaj piosenkę</button>
         </form>
       </div>
 
-      <!-- 3. Zarządzanie / Usuwanie albumów -->
+      <!-- Zarządzanie albumami -->
       <div class="admin-form">
-        <h3>Zarządzaj albumami (Usuwanie)</h3>
-        <br>
+        <h3>4. Zarządzaj albumami</h3>
         <div id="admin-albums-list"></div>
       </div>
 
@@ -328,10 +384,9 @@
     </section>
 
     <!-- Modal Logowania -->
-    <div id="login-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:1000;">
+    <div id="login-modal">
       <div class="admin-form" style="width: 320px;">
         <h3>Logowanie do panelu</h3>
-        <br>
         <input type="text" id="login-user" placeholder="Login">
         <input type="password" id="login-pass" placeholder="Hasło">
         <button onclick="tryLogin()">Zaloguj</button>
@@ -340,68 +395,28 @@
     </div>
   </main>
 
+  <script type="module">
+    import { upload } from 'https://esm.sh/@vercel/blob@latest/client';
+    window.vercelBlobUpload = upload;
+  </script>
+
   <script>
     let albumsData = [];
 
+    // ===================== ALBUMY =====================
+
     async function loadAlbums() {
       try {
-        const res = await fetch('albums.json?' + new Date().getTime());
+        const res = await fetch('albums.json?' + Date.now());
         if (res.ok) {
           albumsData = await res.json();
         } else {
-          throw new Error('Brak pliku albums.json');
+          throw new Error('Brak albums.json');
         }
       } catch (e) {
-        albumsData = [
-          {
-            title: "BAKTERIA MUSIC",
-            year: "2026",
-            cover: "okladka1.jpg",
-            tracks: [
-              { title: "1. Baktiera music", src: "Baktiera music.mp3" },
-              { title: "2. trepa martretor", src: "trepa martretor.mp3" },
-              { title: "3. lolololo", src: "lolololo.mp3" },
-              { title: "4. grzyptop", src: "grzyptop.mp3" },
-              { title: "5. Musardrop", src: "Musardrop.mp3" },
-              { title: "6. pindoloroperomero", src: "pindoloroperomero.mp3" },
-              { title: "7. popsmoke", src: "popsmoke.mp3" },
-              { title: "8. szczerbortyczak", src: "szczerbortyczak.mp3" },
-              { title: "9. gnietwa portuwina", src: "gnietwa portuwina.mp3" },
-              { title: "10. peptyd poltergeist", src: "peptyd poltergeist.mp3" },
-              { title: "11. mr beast", src: "mr beast.mp3" },
-              { title: "12. flegma pierdolony szlam", src: "flegma pierdolony szlam.mp3" }
-            ]
-          }
-        ];
+        albumsData = [];
       }
       renderAlbums();
-    }
-
-    async function saveAlbumsJsonToGitHub() {
-      const jsonString = JSON.stringify(albumsData, null, 2);
-      const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filename: 'albums.json',
-          content: base64Content,
-          message: 'Aktualizacja albums.json przez panel admina'
-        })
-      });
-
-      const text = await response.text();
-      let resData;
-      try {
-        resData = JSON.parse(text);
-      } catch (err) {
-        throw new Error("Błąd serwera: " + text.substring(0, 100));
-      }
-
-      if (!response.ok) {
-        throw new Error(resData.error || 'Błąd zapisu albums.json');
-      }
     }
 
     function renderAlbums() {
@@ -410,15 +425,19 @@
       const adminList = document.getElementById('admin-albums-list');
 
       container.innerHTML = '';
-      if(select) select.innerHTML = '';
-      if(adminList) adminList.innerHTML = '';
-      
+      if (select) select.innerHTML = '';
+      if (adminList) adminList.innerHTML = '';
+
+      if (albumsData.length === 0) {
+        container.innerHTML = '<p style="text-align:center; color:#888;">Brak albumów. Dodaj pierwszy w panelu admina.</p>';
+      }
+
       albumsData.forEach((album, index) => {
         let tracksHtml = '';
         album.tracks.forEach(track => {
           tracksHtml += `
             <li class="track">
-              <span class="track-title">${track.title}</span>
+              <span class="track-title">${escapeHtml(track.title)}</span>
               <audio controls src="${track.src}"></audio>
             </li>
           `;
@@ -427,76 +446,128 @@
         container.innerHTML += `
           <div class="album">
             <div class="album-header">
-              <img src="${album.cover}" alt="Okładka Albumu" class="album-cover">
+              <img src="${album.cover}" alt="Okładka" class="album-cover">
               <div class="album-info">
-                <h3>${album.title}</h3>
-                <p>Rok wydania: ${album.year}</p>
+                <h3>${escapeHtml(album.title)}</h3>
+                <p>Rok wydania: ${escapeHtml(album.year)}</p>
               </div>
             </div>
-            <ul class="tracklist">
-              ${tracksHtml}
-            </ul>
+            <ul class="tracklist">${tracksHtml}</ul>
           </div>
         `;
 
-        if(select) {
-          select.innerHTML += `<option value="${index}">${album.title} (${album.year})</option>`;
+        if (select) {
+          select.innerHTML += `<option value="${index}">${escapeHtml(album.title)} (${escapeHtml(album.year)})</option>`;
         }
 
-        if(adminList) {
+        if (adminList) {
           adminList.innerHTML += `
             <div class="admin-album-item">
-              <span><b>${album.title}</b> (${album.year})</span>
-              <button onclick="deleteAlbum(${index})" style="background:#500; color:#fff; border:none; padding:5px 10px; width:auto; margin:0; cursor:pointer;">Usuń album</button>
+              <span><b>${escapeHtml(album.title)}</b> (${escapeHtml(album.year)})</span>
+              <button onclick="deleteAlbum(${index})" style="background:#500; color:#fff; border:none; padding:5px 10px; width:auto; margin:0; cursor:pointer;">Usuń</button>
             </div>
           `;
         }
       });
     }
 
-    function hideAllSections() {
-      document.querySelectorAll('.content-section').forEach(section => {
-        section.classList.remove('active');
-      });
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
     }
 
-    function showSection(sectionId) {
-      hideAllSections();
-      const activeSection = document.getElementById(sectionId);
-      if (activeSection) {
-        activeSection.classList.add('active');
+    async function saveAlbumsJsonToGitHub() {
+      const token = localStorage.getItem('authToken');
+      if (!token) throw new Error('Nie jesteś zalogowany');
+
+      const jsonString = JSON.stringify(albumsData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token,
+        },
+        body: JSON.stringify({
+          filename: 'albums.json',
+          content: base64Content,
+          message: 'Aktualizacja albums.json',
+        }),
+      });
+
+      const text = await response.text();
+      let resData;
+      try {
+        resData = JSON.parse(text);
+      } catch (err) {
+        throw new Error('Błąd serwera: ' + text.substring(0, 100));
+      }
+
+      if (!response.ok) {
+        throw new Error(resData.error || 'Błąd zapisu');
       }
     }
+
+    // ===================== SEKCJE =====================
+
+    function hideAllSections() {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    }
+
+    function showSection(id) {
+      hideAllSections();
+      const s = document.getElementById(id);
+      if (s) s.classList.add('active');
+    }
+
+    // ===================== LOGOWANIE =====================
 
     function toggleAuthModal() {
       const modal = document.getElementById('login-modal');
       modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
     }
 
-    function tryLogin() {
+    async function tryLogin() {
       const u = document.getElementById('login-user').value;
       const p = document.getElementById('login-pass').value;
 
-      if (u === 'ADMIN1111' && p === 'januszwick1111') {
-        localStorage.setItem('isLoggedIn', 'true');
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user: u, pass: p }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || 'Błędny login lub hasło');
+          return;
+        }
+
+        localStorage.setItem('authToken', data.token);
         toggleAuthModal();
         checkLoginState();
-        alert('Zalogowano pomyślnie!');
         showSection('panel-admina');
-      } else {
-        alert('Błędny login lub hasło!');
+        document.getElementById('login-user').value = '';
+        document.getElementById('login-pass').value = '';
+      } catch (err) {
+        alert('Błąd połączenia: ' + err.message);
       }
     }
 
     function logout() {
-      localStorage.removeItem('isLoggedIn');
+      localStorage.removeItem('authToken');
       checkLoginState();
       showSection('dyskografia');
-      alert('Wylogowano.');
     }
 
     function checkLoginState() {
-      const isLogged = localStorage.getItem('isLoggedIn') === 'true';
+      const isLogged = !!localStorage.getItem('authToken');
       const adminMenu = document.getElementById('admin-menu-item');
       const authLink = document.getElementById('auth-link');
 
@@ -511,91 +582,137 @@
       }
     }
 
+    // ===================== UPLOAD BLOB =====================
+
+    async function uploadToBlob() {
+      const fileInput = document.getElementById('blob-upload-file');
+      const pathInput = document.getElementById('blob-upload-path');
+      const status = document.getElementById('blob-upload-status');
+      const path = pathInput.value.trim();
+
+      status.className = 'upload-status';
+      status.textContent = '';
+
+      if (!fileInput.files.length || !path) {
+        status.className = 'upload-status error';
+        status.textContent = '❌ Wybierz plik i podaj ścieżkę';
+        return;
+      }
+
+      if (!window.vercelBlobUpload) {
+        status.className = 'upload-status error';
+        status.textContent = '❌ Biblioteka jeszcze się ładuje, odczekaj 2 sekundy.';
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        status.className = 'upload-status error';
+        status.textContent = '❌ Musisz być zalogowany';
+        return;
+      }
+
+      status.textContent = `⏳ Wgrywanie ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)...`;
+
+      try {
+        const blob = await window.vercelBlobUpload(path, file, {
+          access: 'public',
+          handleUploadUrl: '/api/blob-upload',
+          clientPayload: token,
+        });
+
+        status.className = 'upload-status success';
+        status.innerHTML = `✅ Wgrano! Skopiuj URL:<br><code>${blob.url}</code>`;
+        console.log('URL:', blob.url);
+      } catch (err) {
+        status.className = 'upload-status error';
+        status.textContent = '❌ ' + err.message;
+      }
+    }
+
+    // ===================== FORMULARZE =====================
+
     function addTrackInput() {
       const container = document.getElementById('tracks-inputs');
       const div = document.createElement('div');
       div.className = 'track-input-group';
       div.innerHTML = `
-        <input type="text" placeholder="Tytuł wyświetlany" class="t-title" required>
-        <input type="text" placeholder="Nazwa pliku MP3" class="t-filename" required>
+        <input type="text" placeholder="Tytuł utworu" class="t-title" required>
+        <input type="text" placeholder="URL MP3 (https://...)" class="t-src" required>
       `;
       container.appendChild(div);
     }
 
     async function handleNewAlbum(e) {
       e.preventDefault();
-      
-      const title = document.getElementById('album-title').value;
-      const year = document.getElementById('album-year').value;
-      const coverFilename = document.getElementById('album-cover-filename').value;
-      
-      const trackTitles = document.querySelectorAll('.t-title');
-      const trackFilenames = document.querySelectorAll('.t-filename');
 
-      let newTracks = [];
+      const title = document.getElementById('album-title').value.trim();
+      const year = document.getElementById('album-year').value.trim();
+      const cover = document.getElementById('album-cover-url').value.trim();
+
+      const trackTitles = document.querySelectorAll('.t-title');
+      const trackSrcs = document.querySelectorAll('.t-src');
+
+      const newTracks = [];
       for (let i = 0; i < trackTitles.length; i++) {
         newTracks.push({
-          title: trackTitles[i].value,
-          src: trackFilenames[i].value
+          title: trackTitles[i].value.trim(),
+          src: trackSrcs[i].value.trim(),
         });
       }
 
-      const newAlbum = {
-        title: title,
-        year: year,
-        cover: coverFilename,
-        tracks: newTracks
-      };
-
-      albumsData.push(newAlbum);
+      albumsData.push({ title, year, cover, tracks: newTracks });
 
       try {
         await saveAlbumsJsonToGitHub();
         renderAlbums();
-        showSection('dyskografia');
         document.getElementById('add-album-form').reset();
-        alert('Album został pomyślnie dodany do albums.json!');
+        document.getElementById('tracks-inputs').innerHTML = `
+          <div class="track-input-group">
+            <input type="text" placeholder="Tytuł utworu" class="t-title" required>
+            <input type="text" placeholder="URL MP3 (https://...)" class="t-src" required>
+          </div>
+        `;
+        alert('✅ Album zapisany!');
+        showSection('dyskografia');
       } catch (err) {
-        console.error(err);
-        alert('Wystąpił błąd: ' + err.message);
+        alert('❌ ' + err.message);
       }
     }
 
     async function handleAddTrackToAlbum(e) {
       e.preventDefault();
-      const albumIndex = document.getElementById('target-album-select').value;
-      const trackTitle = document.getElementById('extra-track-title').value;
-      const trackFilename = document.getElementById('extra-track-filename').value;
+      const index = document.getElementById('target-album-select').value;
+      const title = document.getElementById('extra-track-title').value.trim();
+      const src = document.getElementById('extra-track-src').value.trim();
 
-      albumsData[albumIndex].tracks.push({
-        title: trackTitle,
-        src: trackFilename
-      });
+      albumsData[index].tracks.push({ title, src });
 
       try {
         await saveAlbumsJsonToGitHub();
         renderAlbums();
-        showSection('dyskografia');
         e.target.reset();
-        alert('Piosenka została dodana do albumu!');
+        alert('✅ Piosenka dodana!');
+        showSection('dyskografia');
       } catch (err) {
-        console.error(err);
-        alert('Wystąpił błąd: ' + err.message);
+        alert('❌ ' + err.message);
       }
     }
 
     async function deleteAlbum(index) {
-      if (confirm(`Czy na pewno chcesz usunąć album "${albumsData[index].title}"?`)) {
-        albumsData.splice(index, 1);
-        try {
-          await saveAlbumsJsonToGitHub();
-          renderAlbums();
-          alert('Album został usunięty.');
-        } catch (err) {
-          alert('Błąd podczas usuwania: ' + err.message);
-        }
+      if (!confirm(`Usunąć album "${albumsData[index].title}"?`)) return;
+      albumsData.splice(index, 1);
+      try {
+        await saveAlbumsJsonToGitHub();
+        renderAlbums();
+        alert('✅ Usunięto');
+      } catch (err) {
+        alert('❌ ' + err.message);
       }
     }
+
+    // ===================== START =====================
 
     window.addEventListener('DOMContentLoaded', () => {
       loadAlbums();
