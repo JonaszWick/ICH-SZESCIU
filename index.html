@@ -305,9 +305,7 @@
         <br>
         <form onsubmit="handleAddTrackToAlbum(event)">
           <label>Wybierz album:</label>
-          <select id="target-album-select" required>
-            <!-- Wypełniane dynamicznie -->
-          </select>
+          <select id="target-album-select" required></select>
 
           <label>Tytuł utworu:</label>
           <input type="text" id="extra-track-title" required placeholder="np. Nowy Hit">
@@ -323,9 +321,7 @@
       <div class="admin-form">
         <h3>Zarządzaj albumami (Usuwanie)</h3>
         <br>
-        <div id="admin-albums-list">
-          <!-- Wypełniane dynamicznie -->
-        </div>
+        <div id="admin-albums-list"></div>
       </div>
 
       <button onclick="logout()" style="background:#500; color:#fff; margin-top:20px; width:100%; padding:10px; border:none; font-weight:bold; cursor:pointer;">Wyloguj się</button>
@@ -345,27 +341,72 @@
   </main>
 
   <script>
-    let albumsData = JSON.parse(localStorage.getItem('ch_albums')) || [
-      {
-        title: "BAKTERIA MUSIC",
-        year: "2026",
-        cover: "okladka1.jpg",
-        tracks: [
-          { title: "1. Baktiera music", src: "Baktiera music.mp3" },
-          { title: "2. trepa martretor", src: "trepa martretor.mp3" },
-          { title: "3. lolololo", src: "lolololo.mp3" },
-          { title: "4. grzyptop", src: "grzyptop.mp3" },
-          { title: "5. Musardrop", src: "Musardrop.mp3" },
-          { title: "6. pindoloroperomero", src: "pindoloroperomero.mp3" },
-          { title: "7. popsmoke", src: "popsmoke.mp3" },
-          { title: "8. szczerbortyczak", src: "szczerbortyczak.mp3" },
-          { title: "9. gnietwa portuwina", src: "gnietwa portuwina.mp3" },
-          { title: "10. peptyd poltergeist", src: "peptyd poltergeist.mp3" },
-          { title: "11. mr beast", src: "mr beast.mp3" },
-          { title: "12. flegma pierdolony szlam", src: "flegma pierdolony szlam.mp3" }
-        ]
-      }
-    ];
+    const DB_NAME = 'IchSzesciuDB';
+    const STORE_NAME = 'albumsStore';
+
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+        request.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME);
+          }
+        };
+      });
+    }
+
+    async function loadAlbumsFromDB() {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, 'readonly');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.get('albumsData');
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+          if (!request.result) {
+            resolve([
+              {
+                title: "BAKTERIA MUSIC",
+                year: "2026",
+                cover: "okladka1.jpg",
+                tracks: [
+                  { title: "1. Baktiera music", src: "Baktiera music.mp3" },
+                  { title: "2. trepa martretor", src: "trepa martretor.mp3" },
+                  { title: "3. lolololo", src: "lolololo.mp3" },
+                  { title: "4. grzyptop", src: "grzyptop.mp3" },
+                  { title: "5. Musardrop", src: "Musardrop.mp3" },
+                  { title: "6. pindoloroperomero", src: "pindoloroperomero.mp3" },
+                  { title: "7. popsmoke", src: "popsmoke.mp3" },
+                  { title: "8. szczerbortyczak", src: "szczerbortyczak.mp3" },
+                  { title: "9. gnietwa portuwina", src: "gnietwa portuwina.mp3" },
+                  { title: "10. peptyd poltergeist", src: "peptyd poltergeist.mp3" },
+                  { title: "11. mr beast", src: "mr beast.mp3" },
+                  { title: "12. flegma pierdolony szlam", src: "flegma pierdolony szlam.mp3" }
+                ]
+              }
+            ]);
+          } else {
+            resolve(request.result);
+          }
+        };
+      });
+    }
+
+    async function saveAlbumsToDB(data) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const transaction = db.transaction(STORE_NAME, 'readwrite');
+        const store = transaction.objectStore(STORE_NAME);
+        const request = store.put(data, 'albumsData');
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => resolve(request.result);
+      });
+    }
+
+    let albumsData = [];
 
     function renderAlbums() {
       const container = document.getElementById('albums-container');
@@ -387,7 +428,6 @@
           `;
         });
 
-        // Widok publiczny (Dyskografia)
         container.innerHTML += `
           <div class="album">
             <div class="album-header">
@@ -403,12 +443,10 @@
           </div>
         `;
 
-        // Select w panelu do dodawania piosenek
         if(select) {
           select.innerHTML += `<option value="${index}">${album.title} (${album.year})</option>`;
         }
 
-        // Lista zarządzania / usuwania albumów w panelu
         if(adminList) {
           adminList.innerHTML += `
             <div class="admin-album-item">
@@ -421,8 +459,7 @@
     }
 
     function hideAllSections() {
-      const sections = document.querySelectorAll('.content-section');
-      sections.forEach(section => {
+      document.querySelectorAll('.content-section').forEach(section => {
         section.classList.remove('active');
       });
     }
@@ -508,7 +545,7 @@
       const trackTitles = document.querySelectorAll('.t-title');
       const trackFiles = document.querySelectorAll('.t-file');
 
-      alert('Przetwarzanie i dodawanie albumu...');
+      alert('Przetwarzanie i zapisywanie albumu...');
 
       try {
         const coverBase64 = await fileToBase64(coverFile);
@@ -534,7 +571,7 @@
         };
 
         albumsData.push(newAlbum);
-        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        await saveAlbumsToDB(albumsData);
         
         renderAlbums();
         showSection('dyskografia');
@@ -565,7 +602,7 @@
           src: trackBase64
         });
 
-        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        await saveAlbumsToDB(albumsData);
         renderAlbums();
         showSection('dyskografia');
         e.target.reset();
@@ -576,16 +613,17 @@
       }
     }
 
-    function deleteAlbum(index) {
+    async function deleteAlbum(index) {
       if (confirm(`Czy na pewno chcesz usunąć album "${albumsData[index].title}"?`)) {
         albumsData.splice(index, 1);
-        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        await saveAlbumsToDB(albumsData);
         renderAlbums();
         alert('Album został usunięty.');
       }
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      albumsData = await loadAlbumsFromDB();
       renderAlbums();
       hideAllSections();
       checkLoginState();
