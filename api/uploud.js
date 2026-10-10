@@ -1,7 +1,7 @@
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '50mb', // Zwiększa limit rozmiaru dla plików MP3
+      sizeLimit: '50mb',
     },
   },
 };
@@ -12,8 +12,8 @@ export default async function handler(req, res) {
   }
 
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = 'JonasZwick'; // Twój login na GitHubie
-  const REPO_NAME = 'ICH-SZESCIU';  // Nazwa repozytorium
+  const REPO_OWNER = 'JonasZwick'; 
+  const REPO_NAME = 'ICH-SZESCIU';  
 
   if (!GITHUB_TOKEN) {
     return res.status(500).json({ error: 'Brak tokena GITHUB_TOKEN w zmiennych środowiskowych Vercela.' });
@@ -26,8 +26,24 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Brak nazwy pliku lub zawartości.' });
     }
 
-    // Wysyłanie pliku przez GitHub REST API
-    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filename}`, {
+    const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filename}`;
+
+    // Sprawdź czy plik już istnieje (potrzebne do 'sha' przy aktualizacji np. albums.json)
+    let sha = undefined;
+    const getResponse = await fetch(url, {
+      headers: {
+        'Authorization': `Bearer ${GITHUB_TOKEN}`,
+        'User-Agent': 'Vercel-Uploader'
+      }
+    });
+
+    if (getResponse.ok) {
+      const fileData = await getResponse.json();
+      sha = fileData.sha;
+    }
+
+    // Wyślij lub zaktualizuj plik przez GitHub REST API
+    const response = await fetch(url, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${GITHUB_TOKEN}`,
@@ -35,8 +51,9 @@ export default async function handler(req, res) {
         'User-Agent': 'Vercel-Uploader'
       },
       body: JSON.stringify({
-        message: message || `Dodano plik ${filename} przez panel admina`,
-        content: content // Zawartość w formacie base64
+        message: message || `Aktualizacja pliku ${filename} przez panel admina`,
+        content: content,
+        sha: sha
       })
     });
 
@@ -46,8 +63,8 @@ export default async function handler(req, res) {
       return res.status(response.status).json({ error: data.message || 'Błąd zapisu na GitHubie' });
     }
 
-    return.status(200).json({ success: true, data });
+    return res.status(200).json({ success: true, data });
   } catch (error) {
-    return.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
