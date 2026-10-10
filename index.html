@@ -429,7 +429,7 @@
       container.appendChild(div);
     }
 
-    function handleNewAlbum(e) {
+   async function handleNewAlbum(e) {
       e.preventDefault();
       
       const title = document.getElementById('album-title').value;
@@ -439,18 +439,71 @@
       const trackTitles = document.querySelectorAll('.t-title');
       const trackFiles = document.querySelectorAll('.t-file');
 
-      // Konwersja plików na adresy lokalne (Blob URL) na potrzeby sesji przeglądarki
-      const coverUrl = URL.createObjectURL(coverFile);
-      let newTracks = [];
+      alert('Trwa wysyłanie plików na GitHub i aktualizacja repozytorium. Poczekaj chwilę...');
 
-      for (let i = 0; i < trackTitles.length; i++) {
-        if(trackFiles[i].files[0]) {
-          newTracks.push({
-            title: trackTitles[i].value,
-            src: URL.createObjectURL(trackFiles[i].files[0])
+      try {
+        // 1. Funkcja pomocnicza do konwersji pliku na Base64
+        const fileToBase64 = (file) => {
+          return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = error => reject(error);
           });
+        };
+
+        // 2. Wysyłanie okładki
+        const coverBase64 = await fileToBase64(coverFile);
+        const coverFilename = coverFile.name;
+        
+        await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: coverFilename, content: coverBase64, message: `Dodano okładkę: ${coverFilename}` })
+        });
+
+        // 3. Wysyłanie utworów MP3
+        let newTracks = [];
+        for (let i = 0; i < trackTitles.length; i++) {
+          if (trackFiles[i].files[0]) {
+            const trackFile = trackFiles[i].files[0];
+            const trackBase64 = await fileToBase64(trackFile);
+            const trackFilename = trackFile.name;
+
+            await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano utwór: ${trackFilename}` })
+            });
+
+            newTracks.push({
+              title: trackTitles[i].value,
+              src: trackFilename
+            });
+          }
         }
+
+        // 4. Zapisanie albumu lokalnie i odświeżenie widoku
+        const newAlbum = {
+          title: title,
+          year: year,
+          cover: coverFilename,
+          tracks: newTracks
+        };
+
+        albumsData.push(newAlbum);
+        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        
+        renderAlbums();
+        showSection('dyskografia');
+        document.getElementById('add-album-form').reset();
+        alert('Album został pomyślnie dodany i przesłany do repozytorium GitHub!');
+
+      } catch (err) {
+        console.error(err);
+        alert('Wystąpił błąd podczas wysyłania plików: ' + err.message);
       }
+    }
 
       const newAlbum = {
         title: title,
