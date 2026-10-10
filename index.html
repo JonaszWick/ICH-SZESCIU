@@ -194,7 +194,7 @@
       padding: 20px;
       margin-top: 20px;
     }
-    .admin-form input, .admin-form button {
+    .admin-form input, .admin-form select, .admin-form button {
       width: 100%;
       padding: 10px;
       margin-bottom: 15px;
@@ -216,6 +216,15 @@
     }
     .track-input-group input {
       margin-bottom: 0;
+    }
+    .admin-album-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      border-bottom: 1px solid #222;
+      font-size: 14px;
+      margin-bottom: 8px;
     }
   </style>
 </head>
@@ -261,6 +270,8 @@
     <!-- Sekcja Panelu Admina -->
     <section id="panel-admina" class="content-section">
       <h2 class="section-title">Panel Administratora</h2>
+      
+      <!-- 1. Dodawanie nowego albumu -->
       <div class="admin-form">
         <h3>Dodaj nowy album</h3>
         <br>
@@ -286,8 +297,38 @@
           
           <button type="submit">Zapisz i dodaj album</button>
         </form>
-        <button onclick="logout()" style="background:#500; color:#fff; margin-top:20px;">Wyloguj się</button>
       </div>
+
+      <!-- 2. Dodawanie piosenki do istniejącego albumu -->
+      <div class="admin-form">
+        <h3>Dodaj piosenkę do istniejącego albumu</h3>
+        <br>
+        <form onsubmit="handleAddTrackToAlbum(event)">
+          <label>Wybierz album:</label>
+          <select id="target-album-select" required>
+            <!-- Wypełniane dynamicznie -->
+          </select>
+
+          <label>Tytuł utworu:</label>
+          <input type="text" id="extra-track-title" required placeholder="np. Nowy Hit">
+
+          <label>Plik MP3:</label>
+          <input type="file" id="extra-track-file" accept="audio/mp3" required>
+
+          <button type="submit">Dodaj piosenkę do albumu</button>
+        </form>
+      </div>
+
+      <!-- 3. Zarządzanie / Usuwanie albumów -->
+      <div class="admin-form">
+        <h3>Zarządzaj albumami (Usuwanie)</h3>
+        <br>
+        <div id="admin-albums-list">
+          <!-- Wypełniane dynamicznie -->
+        </div>
+      </div>
+
+      <button onclick="logout()" style="background:#500; color:#fff; margin-top:20px; width:100%; padding:10px; border:none; font-weight:bold; cursor:pointer;">Wyloguj się</button>
     </section>
 
     <!-- Modal Logowania -->
@@ -304,7 +345,6 @@
   </main>
 
   <script>
-    // Domyślne dane albumów (w tym Twój album startowy)
     let albumsData = JSON.parse(localStorage.getItem('ch_albums')) || [
       {
         title: "BAKTERIA MUSIC",
@@ -329,9 +369,14 @@
 
     function renderAlbums() {
       const container = document.getElementById('albums-container');
+      const select = document.getElementById('target-album-select');
+      const adminList = document.getElementById('admin-albums-list');
+
       container.innerHTML = '';
+      if(select) select.innerHTML = '';
+      if(adminList) adminList.innerHTML = '';
       
-      albumsData.forEach(album => {
+      albumsData.forEach((album, index) => {
         let tracksHtml = '';
         album.tracks.forEach(track => {
           tracksHtml += `
@@ -342,6 +387,7 @@
           `;
         });
 
+        // Widok publiczny (Dyskografia)
         container.innerHTML += `
           <div class="album">
             <div class="album-header">
@@ -356,6 +402,21 @@
             </ul>
           </div>
         `;
+
+        // Select w panelu do dodawania piosenek
+        if(select) {
+          select.innerHTML += `<option value="${index}">${album.title} (${album.year})</option>`;
+        }
+
+        // Lista zarządzania / usuwania albumów w panelu
+        if(adminList) {
+          adminList.innerHTML += `
+            <div class="admin-album-item">
+              <span><b>${album.title}</b> (${album.year})</span>
+              <button onclick="deleteAlbum(${index})" style="background:#500; color:#fff; border:none; padding:5px 10px; width:auto; margin:0; cursor:pointer;">Usuń album</button>
+            </div>
+          `;
+        }
       });
     }
 
@@ -428,6 +489,15 @@
       container.appendChild(div);
     }
 
+    const fileToBase64 = (file) => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    };
+
     async function handleNewAlbum(e) {
       e.preventDefault();
       
@@ -438,18 +508,9 @@
       const trackTitles = document.querySelectorAll('.t-title');
       const trackFiles = document.querySelectorAll('.t-file');
 
-      alert('Przetwarzanie plików...');
+      alert('Przetwarzanie i dodawanie albumu...');
 
       try {
-        const fileToBase64 = (file) => {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-          });
-        };
-
         const coverBase64 = await fileToBase64(coverFile);
 
         let newTracks = [];
@@ -478,11 +539,49 @@
         renderAlbums();
         showSection('dyskografia');
         document.getElementById('add-album-form').reset();
-        alert('Album został pomyślnie dodany i od razu opublikowany na stronie!');
+        alert('Album został pomyślnie dodany!');
 
       } catch (err) {
         console.error(err);
         alert('Wystąpił błąd: ' + err.message);
+      }
+    }
+
+    async function handleAddTrackToAlbum(e) {
+      e.preventDefault();
+      const albumIndex = document.getElementById('target-album-select').value;
+      const trackTitle = document.getElementById('extra-track-title').value;
+      const trackFile = document.getElementById('extra-track-file').files[0];
+
+      if (!trackFile) return;
+
+      alert('Dodawanie piosenki...');
+
+      try {
+        const trackBase64 = await fileToBase64(trackFile);
+
+        albumsData[albumIndex].tracks.push({
+          title: trackTitle,
+          src: trackBase64
+        });
+
+        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        renderAlbums();
+        showSection('dyskografia');
+        e.target.reset();
+        alert('Piosenka została dodana do albumu!');
+      } catch (err) {
+        console.error(err);
+        alert('Wystąpił błąd: ' + err.message);
+      }
+    }
+
+    function deleteAlbum(index) {
+      if (confirm(`Czy na pewno chcesz usunąć album "${albumsData[index].title}"?`)) {
+        albumsData.splice(index, 1);
+        localStorage.setItem('ch_albums', JSON.stringify(albumsData));
+        renderAlbums();
+        alert('Album został usunięty.');
       }
     }
 
