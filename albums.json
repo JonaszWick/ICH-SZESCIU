@@ -1,0 +1,21 @@
+[
+  {
+    "title": "BAKTERIA MUSIC",
+    "year": "2026",
+    "cover": "okladka1.jpg",
+    "tracks": [
+      { "title": "1. Baktiera music", "src": "Baktiera music.mp3" },
+      { "title": "2. trepa martretor", "src": "trepa martretor.mp3" },
+      { "title": "3. lolololo", "src": "lolololo.mp3" },
+      { "title": "4. grzyptop", "src": "grzyptop.mp3" },
+      { "title": "5. Musardrop", "src": "Musardrop.mp3" },
+      { "title": "6. pindoloroperomero", "src": "pindoloroperomero.mp3" },
+      { "title": "7. popsmoke", "src": "popsmoke.mp3" },
+      { "title": "8. szczerbortyczak", "src": "szczerbortyczak.mp3" },
+      { "title": "9. gnietwa portuwina", "src": "gnietwa portuwina.mp3" },
+      { "title": "10. peptyd poltergeist", "src": "peptyd poltergeist.mp3" },
+      { "title": "11. mr beast", "src": "mr beast.mp3" },
+      { "title": "12. flegma pierdolony szlam", "src": "flegma pierdolony szlam.mp3" }
+    ]
+  }
+]
