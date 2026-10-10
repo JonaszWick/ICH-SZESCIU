@@ -188,7 +188,6 @@
       text-align: center;
     }
 
-    /* Style formularza logowania i panelu admina */
     .admin-form {
       background: #0a0a0a;
       border: 1px solid #333;
@@ -259,7 +258,7 @@
       <p>jestesmy zjebami i chuj</p>
     </section>
 
-    <!-- Sekcja Panelu Admina (Widoczna po zalogowaniu) -->
+    <!-- Sekcja Panelu Admina -->
     <section id="panel-admina" class="content-section">
       <h2 class="section-title">Panel Administratora</h2>
       <div class="admin-form">
@@ -267,7 +266,7 @@
         <br>
         <form id="add-album-form" onsubmit="handleNewAlbum(event)">
           <label>Tytuł albumu:</label>
-          <input type="text" id="album-title" required placeholder="np. BAKTERIA MUSIC">
+          <input type="text" id="album-title" required placeholder="np. HIPHOP X">
           
           <label>Rok wydania:</label>
           <input type="text" id="album-year" required placeholder="np. 2026">
@@ -439,45 +438,29 @@
       const trackTitles = document.querySelectorAll('.t-title');
       const trackFiles = document.querySelectorAll('.t-file');
 
-      alert('Trwa wysyłanie plików na GitHub i aktualizacja repozytorium. Poczekaj chwilę...');
+      alert('Przetwarzanie plików...');
 
       try {
         const fileToBase64 = (file) => {
           return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onload = () => resolve(reader.result);
             reader.onerror = error => reject(error);
           });
         };
 
-        // Wysyłanie okładki
         const coverBase64 = await fileToBase64(coverFile);
-        const coverFilename = coverFile.name;
-        
-        await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: coverFilename, content: coverBase64, message: `Dodano okładkę: ${coverFilename}` })
-        });
 
-        // Wysyłanie utworów MP3
         let newTracks = [];
         for (let i = 0; i < trackTitles.length; i++) {
           if (trackFiles[i].files[0]) {
             const trackFile = trackFiles[i].files[0];
             const trackBase64 = await fileToBase64(trackFile);
-            const trackFilename = trackFile.name;
-
-            await fetch('/api/upload', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano utwór: ${trackFilename}` })
-            });
 
             newTracks.push({
               title: trackTitles[i].value,
-              src: trackFilename
+              src: trackBase64
             });
           }
         }
@@ -485,7 +468,7 @@
         const newAlbum = {
           title: title,
           year: year,
-          cover: coverFilename,
+          cover: coverBase64,
           tracks: newTracks
         };
 
@@ -495,11 +478,11 @@
         renderAlbums();
         showSection('dyskografia');
         document.getElementById('add-album-form').reset();
-        alert('Album został pomyślnie dodany i przesłany do repozytorium GitHub!');
+        alert('Album został pomyślnie dodany i od razu opublikowany na stronie!');
 
       } catch (err) {
         console.error(err);
-        alert('Wystąpił błąd podczas wysyłania plików: ' + err.message);
+        alert('Wystąpił błąd: ' + err.message);
       }
     }
 
