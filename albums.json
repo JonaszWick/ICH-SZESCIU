@@ -53,5 +53,124 @@
         "src": "flegma pierdolony szlam.mp3"
       }
     ]
+  },
+  {
+    "title": "HIPHOP X",
+    "year": "2026",
+    "cover": "HIPHOPX.png",
+    "tracks": [
+      {
+        "title": "BONUS 1 - poranne sranie w prlu",
+        "src": "poranne_sranie_w_prlu(1).mp3"
+      },
+      {
+        "title": "Rap nie żyje on umarł",
+        "src": "Rap_nie_yje_on_umar.mp3"
+      },
+      {
+        "title": "błędny Terror",
+        "src": "błędny Terror.mp3"
+      },
+      {
+        "title": "ja-pi-di",
+        "src": "japidi.mp3"
+      },
+      {
+        "title": "Propleksja",
+        "src": "Propleksja(3).mp3"
+      },
+      {
+        "title": "Zły",
+        "src": "zy(1).mp3"
+      },
+      {
+        "title": "Mocne emocje",
+        "src": "mocne emocje.mp3"
+      },
+      {
+        "title": "strangled",
+        "src": "Jakub Marek - strangled 2025-11-02 16_15.m4a"
+      },
+      {
+        "title": "MARUNA",
+        "src": "MARUNA(5).mp3"
+      },
+      {
+        "title": "gumoleum",
+        "src": "gumoleum.mp3"
+      },
+      {
+        "title": "apogeum",
+        "src": "apogeum(1).mp3"
+      },
+      {
+        "title": "PYK PYK",
+        "src": "PYK PYK.mp3"
+      },
+      {
+        "title": "Piosenka o dzbanie",
+        "src": "PIOSENKA_O_DZBANIE(1).mp3"
+      },
+      {
+        "title": "To jest rym pecie",
+        "src": "to_jest_rym_pecie(2).mp3"
+      },
+      {
+        "title": "738",
+        "src": "738_ULEPSZONE(2).mp3"
+      },
+      {
+        "title": "ufo mnie uwiodło",
+        "src": "ufo_mnie_uwiodo(4).mp3"
+      },
+      {
+        "title": "Sonda Uliczna",
+        "src": "Sonda_Uliczna.mp3"
+      },
+      {
+        "title": "Manifest",
+        "src": "Manifest (1).mp3"
+      },
+      {
+        "title": "Moje gbokie wyznanie",
+        "src": "Moje_gbokie_wyznanie(1).mp3"
+      },
+      {
+        "title": "Gerbert",
+        "src": "Gerbert.mp3"
+      },
+      {
+        "title": "ILUMINACJE",
+        "src": "ILUMINACJE(2) (1).mp3"
+      },
+      {
+        "title": "The price is wrong",
+        "src": "The_Price_is_Wrong (1).mp3"
+      },
+      {
+        "title": "Maria Konopnicka",
+        "src": "Maria_Konopnicka(5).mp3"
+      },
+      {
+        "title": "Freeway Cola",
+        "src": "FREEWAY_COLA_BEZ_DODATKOW(1).mp3"
+      },
+      {
+        "title": "Akapela Makrela",
+        "src": "AKAPELA_MAKRELA(7).mp3"
+      },
+      {
+        "title": "Cały w dżinie",
+        "src": "cau_w_dzinie.mp3"
+      },
+      {
+        "title": "Rynsztok",
+        "src": "Rynsztok.mp3"
+      },
+      {
+        "title": "Modlitwa Polaka",
+        "src": "MODLITWA.mp3"
+      }
+    ]
   }
 ]
