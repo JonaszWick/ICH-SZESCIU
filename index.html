@@ -295,7 +295,7 @@
           </div>
           <button type="button" onclick="addTrackInput()" style="background:#222; color:#fff; margin-bottom:15px;">+ Dodaj kolejny utwór</button>
           
-          <button type="submit">Zapisz i dodaj album</button>
+          <button type="submit">Zapisz i prześlij na GitHub</button>
         </form>
       </div>
 
@@ -341,72 +341,61 @@
   </main>
 
   <script>
-    const DB_NAME = 'IchSzesciuDB';
-    const STORE_NAME = 'albumsStore';
-
-    function openDB() {
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(DB_NAME, 1);
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(request.result);
-        request.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME);
-          }
-        };
-      });
-    }
-
-    async function loadAlbumsFromDB() {
-      const db = await openDB();
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(STORE_NAME, 'readonly');
-        const store = transaction.objectStore(STORE_NAME);
-        const request = store.get('albumsData');
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          if (!request.result) {
-            resolve([
-              {
-                title: "BAKTERIA MUSIC",
-                year: "2026",
-                cover: "okladka1.jpg",
-                tracks: [
-                  { title: "1. Baktiera music", src: "Baktiera music.mp3" },
-                  { title: "2. trepa martretor", src: "trepa martretor.mp3" },
-                  { title: "3. lolololo", src: "lolololo.mp3" },
-                  { title: "4. grzyptop", src: "grzyptop.mp3" },
-                  { title: "5. Musardrop", src: "Musardrop.mp3" },
-                  { title: "6. pindoloroperomero", src: "pindoloroperomero.mp3" },
-                  { title: "7. popsmoke", src: "popsmoke.mp3" },
-                  { title: "8. szczerbortyczak", src: "szczerbortyczak.mp3" },
-                  { title: "9. gnietwa portuwina", src: "gnietwa portuwina.mp3" },
-                  { title: "10. peptyd poltergeist", src: "peptyd poltergeist.mp3" },
-                  { title: "11. mr beast", src: "mr beast.mp3" },
-                  { title: "12. flegma pierdolony szlam", src: "flegma pierdolony szlam.mp3" }
-                ]
-              }
-            ]);
-          } else {
-            resolve(request.result);
-          }
-        };
-      });
-    }
-
-    async function saveAlbumsToDB(data) {
-      const db = await openDB();
-      return new Promise((resolve, reject) => {
-        const transaction = db.transaction(STORE_NAME, 'readwrite');
-        const store = transaction.objectStore(STORE_NAME);
-        const request = store.put(data, 'albumsData');
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(request.result);
-      });
-    }
-
     let albumsData = [];
+
+    async function loadAlbums() {
+      try {
+        const res = await fetch('albums.json?' + new Date().getTime());
+        if (res.ok) {
+          albumsData = await res.json();
+        } else {
+          throw new Error('Brak pliku albums.json');
+        }
+      } catch (e) {
+        albumsData = [
+          {
+            title: "BAKTERIA MUSIC",
+            year: "2026",
+            cover: "okladka1.jpg",
+            tracks: [
+              { title: "1. Baktiera music", src: "Baktiera music.mp3" },
+              { title: "2. trepa martretor", src: "trepa martretor.mp3" },
+              { title: "3. lolololo", src: "lolololo.mp3" },
+              { title: "4. grzyptop", src: "grzyptop.mp3" },
+              { title: "5. Musardrop", src: "Musardrop.mp3" },
+              { title: "6. pindoloroperomero", src: "pindoloroperomero.mp3" },
+              { title: "7. popsmoke", src: "popsmoke.mp3" },
+              { title: "8. szczerbortyczak", src: "szczerbortyczak.mp3" },
+              { title: "9. gnietwa portuwina", src: "gnietwa portuwina.mp3" },
+              { title: "10. peptyd poltergeist", src: "peptyd poltergeist.mp3" },
+              { title: "11. mr beast", src: "mr beast.mp3" },
+              { title: "12. flegma pierdolony szlam", src: "flegma pierdolony szlam.mp3" }
+            ]
+          }
+        ];
+      }
+      renderAlbums();
+    }
+
+    async function saveAlbumsJsonToGitHub() {
+      const jsonString = JSON.stringify(albumsData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filename: 'albums.json',
+          content: base64Content,
+          message: 'Aktualizacja albums.json przez panel admina'
+        })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Błąd zapisu albums.json');
+      }
+    }
 
     function renderAlbums() {
       const container = document.getElementById('albums-container');
@@ -530,7 +519,7 @@
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => resolve(reader.result.split(',')[1]);
         reader.onerror = error => reject(error);
       });
     };
@@ -545,20 +534,34 @@
       const trackTitles = document.querySelectorAll('.t-title');
       const trackFiles = document.querySelectorAll('.t-file');
 
-      alert('Przetwarzanie i zapisywanie albumu...');
+      alert('Trwa przesyłanie plików i aktualizacja bazy na GitHubie...');
 
       try {
         const coverBase64 = await fileToBase64(coverFile);
+        const coverFilename = 'cover_' + Date.now() + '_' + coverFile.name;
+
+        await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: coverFilename, content: coverBase64, message: `Dodano okładkę ${coverFilename}` })
+        });
 
         let newTracks = [];
         for (let i = 0; i < trackTitles.length; i++) {
           if (trackFiles[i].files[0]) {
             const trackFile = trackFiles[i].files[0];
             const trackBase64 = await fileToBase64(trackFile);
+            const trackFilename = 'track_' + Date.now() + '_' + trackFile.name;
+
+            await fetch('/api/upload', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano utwór ${trackFilename}` })
+            });
 
             newTracks.push({
               title: trackTitles[i].value,
-              src: trackBase64
+              src: trackFilename
             });
           }
         }
@@ -566,17 +569,17 @@
         const newAlbum = {
           title: title,
           year: year,
-          cover: coverBase64,
+          cover: coverFilename,
           tracks: newTracks
         };
 
         albumsData.push(newAlbum);
-        await saveAlbumsToDB(albumsData);
+        await saveAlbumsJsonToGitHub();
         
         renderAlbums();
         showSection('dyskografia');
         document.getElementById('add-album-form').reset();
-        alert('Album został pomyślnie dodany!');
+        alert('Album został pomyślnie dodany i przesłany do repozytorium!');
 
       } catch (err) {
         console.error(err);
@@ -592,17 +595,24 @@
 
       if (!trackFile) return;
 
-      alert('Dodawanie piosenki...');
+      alert('Trwa przesyłanie piosenki na GitHub...');
 
       try {
         const trackBase64 = await fileToBase64(trackFile);
+        const trackFilename = 'track_' + Date.now() + '_' + trackFile.name;
+
+        await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano piosenkę ${trackFilename}` })
+        });
 
         albumsData[albumIndex].tracks.push({
           title: trackTitle,
-          src: trackBase64
+          src: trackFilename
         });
 
-        await saveAlbumsToDB(albumsData);
+        await saveAlbumsJsonToGitHub();
         renderAlbums();
         showSection('dyskografia');
         e.target.reset();
@@ -616,15 +626,18 @@
     async function deleteAlbum(index) {
       if (confirm(`Czy na pewno chcesz usunąć album "${albumsData[index].title}"?`)) {
         albumsData.splice(index, 1);
-        await saveAlbumsToDB(albumsData);
-        renderAlbums();
-        alert('Album został usunięty.');
+        try {
+          await saveAlbumsJsonToGitHub();
+          renderAlbums();
+          alert('Album został usunięty.');
+        } catch (err) {
+          alert('Błąd podczas usuwania: ' + err.message);
+        }
       }
     }
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      albumsData = await loadAlbumsFromDB();
-      renderAlbums();
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAlbums();
       hideAllSections();
       checkLoginState();
     });
