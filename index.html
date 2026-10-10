@@ -273,7 +273,7 @@
       
       <!-- 1. Dodawanie nowego albumu -->
       <div class="admin-form">
-        <h3>Dodaj nowy album</h3>
+        <h3>Dodaj nowy album (zaktualizuj albums.json)</h3>
         <br>
         <form id="add-album-form" onsubmit="handleNewAlbum(event)">
           <label>Tytuł albumu:</label>
@@ -282,20 +282,20 @@
           <label>Rok wydania:</label>
           <input type="text" id="album-year" required placeholder="np. 2026">
           
-          <label>Okładka albumu (plik graficzny):</label>
-          <input type="file" id="album-cover-file" accept="image/*" required>
+          <label>Nazwa pliku okładki (wgranej wcześniej na GitHub, np. okladka2.jpg):</label>
+          <input type="text" id="album-cover-filename" required placeholder="okladka2.jpg">
           
-          <h3>Lista utworów (MP3)</h3>
+          <h3>Lista utworów (nazwy plików MP3 z GitHuba)</h3>
           <br>
           <div id="tracks-inputs">
             <div class="track-input-group">
-              <input type="text" placeholder="Tytuł utworu" class="t-title" required>
-              <input type="file" accept="audio/mp3" class="t-file" required>
+              <input type="text" placeholder="Tytuł wyświetlany (np. 1. Hit)" class="t-title" required>
+              <input type="text" placeholder="Nazwa pliku MP3 (np. hit.mp3)" class="t-filename" required>
             </div>
           </div>
           <button type="button" onclick="addTrackInput()" style="background:#222; color:#fff; margin-bottom:15px;">+ Dodaj kolejny utwór</button>
           
-          <button type="submit">Zapisz i prześlij na GitHub</button>
+          <button type="submit">Zapisz zmiany w albums.json</button>
         </form>
       </div>
 
@@ -307,11 +307,11 @@
           <label>Wybierz album:</label>
           <select id="target-album-select" required></select>
 
-          <label>Tytuł utworu:</label>
+          <label>Tytuł utworu (wyświetlany):</label>
           <input type="text" id="extra-track-title" required placeholder="np. Nowy Hit">
 
-          <label>Plik MP3:</label>
-          <input type="file" id="extra-track-file" accept="audio/mp3" required>
+          <label>Nazwa pliku MP3 (wgranego na GitHub):</label>
+          <input type="text" id="extra-track-filename" required placeholder="np. nowy_hit.mp3">
 
           <button type="submit">Dodaj piosenkę do albumu</button>
         </form>
@@ -396,7 +396,7 @@
       try {
         resData = JSON.parse(text);
       } catch (err) {
-        throw new Error("Błąd serwera (endpoint /api/upload nie zwrócił JSONa). Upewnij się, że plik api/upload.js istnieje na GitHubie. Treść: " + text.substring(0, 100));
+        throw new Error("Błąd serwera: " + text.substring(0, 100));
       }
 
       if (!response.ok) {
@@ -516,78 +516,45 @@
       const div = document.createElement('div');
       div.className = 'track-input-group';
       div.innerHTML = `
-        <input type="text" placeholder="Tytuł utworu" class="t-title" required>
-        <input type="file" accept="audio/mp3" class="t-file" required>
+        <input type="text" placeholder="Tytuł wyświetlany" class="t-title" required>
+        <input type="text" placeholder="Nazwa pliku MP3" class="t-filename" required>
       `;
       container.appendChild(div);
     }
-
-    const fileToBase64 = (file) => {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = error => reject(error);
-      });
-    };
 
     async function handleNewAlbum(e) {
       e.preventDefault();
       
       const title = document.getElementById('album-title').value;
       const year = document.getElementById('album-year').value;
-      const coverFile = document.getElementById('album-cover-file').files[0];
+      const coverFilename = document.getElementById('album-cover-filename').value;
       
       const trackTitles = document.querySelectorAll('.t-title');
-      const trackFiles = document.querySelectorAll('.t-file');
+      const trackFilenames = document.querySelectorAll('.t-filename');
 
-      alert('Trwa przesyłanie plików i aktualizacja bazy na GitHubie...');
+      let newTracks = [];
+      for (let i = 0; i < trackTitles.length; i++) {
+        newTracks.push({
+          title: trackTitles[i].value,
+          src: trackFilenames[i].value
+        });
+      }
+
+      const newAlbum = {
+        title: title,
+        year: year,
+        cover: coverFilename,
+        tracks: newTracks
+      };
+
+      albumsData.push(newAlbum);
 
       try {
-        const coverBase64 = await fileToBase64(coverFile);
-        const coverFilename = 'cover_' + Date.now() + '_' + coverFile.name;
-
-        await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: coverFilename, content: coverBase64, message: `Dodano okładkę ${coverFilename}` })
-        });
-
-        let newTracks = [];
-        for (let i = 0; i < trackTitles.length; i++) {
-          if (trackFiles[i].files[0]) {
-            const trackFile = trackFiles[i].files[0];
-            const trackBase64 = await fileToBase64(trackFile);
-            const trackFilename = 'track_' + Date.now() + '_' + trackFile.name;
-
-            await fetch('/api/upload', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano utwór ${trackFilename}` })
-            });
-
-            newTracks.push({
-              title: trackTitles[i].value,
-              src: trackFilename
-            });
-          }
-        }
-
-        const newAlbum = {
-          title: title,
-          year: year,
-          cover: coverFilename,
-          tracks: newTracks
-        };
-
-        albumsData.push(newAlbum);
         await saveAlbumsJsonToGitHub();
-        
         renderAlbums();
         showSection('dyskografia');
         document.getElementById('add-album-form').reset();
-        alert('Album został pomyślnie dodany i przesłany do repozytorium!');
-
+        alert('Album został pomyślnie dodany do albums.json!');
       } catch (err) {
         console.error(err);
         alert('Wystąpił błąd: ' + err.message);
@@ -598,27 +565,14 @@
       e.preventDefault();
       const albumIndex = document.getElementById('target-album-select').value;
       const trackTitle = document.getElementById('extra-track-title').value;
-      const trackFile = document.getElementById('extra-track-file').files[0];
+      const trackFilename = document.getElementById('extra-track-filename').value;
 
-      if (!trackFile) return;
-
-      alert('Trwa przesyłanie piosenki na GitHub...');
+      albumsData[albumIndex].tracks.push({
+        title: trackTitle,
+        src: trackFilename
+      });
 
       try {
-        const trackBase64 = await fileToBase64(trackFile);
-        const trackFilename = 'track_' + Date.now() + '_' + trackFile.name;
-
-        await fetch('/api/upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ filename: trackFilename, content: trackBase64, message: `Dodano piosenkę ${trackFilename}` })
-        });
-
-        albumsData[albumIndex].tracks.push({
-          title: trackTitle,
-          src: trackFilename
-        });
-
         await saveAlbumsJsonToGitHub();
         renderAlbums();
         showSection('dyskografia');
