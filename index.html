@@ -391,9 +391,16 @@
         })
       });
 
+      const text = await response.text();
+      let resData;
+      try {
+        resData = JSON.parse(text);
+      } catch (err) {
+        throw new Error("Błąd serwera (endpoint /api/upload nie zwrócił JSONa). Upewnij się, że plik api/upload.js istnieje na GitHubie. Treść: " + text.substring(0, 100));
+      }
+
       if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Błąd zapisu albums.json');
+        throw new Error(resData.error || 'Błąd zapisu albums.json');
       }
     }
 
