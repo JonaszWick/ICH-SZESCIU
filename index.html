@@ -618,7 +618,7 @@
           cover,
           tracks: genFiles.map(f => ({
             title: f.title,
-            src: f.file.name,
+            src: 'muzyka/' + f.file.name,
           })),
         };
 
@@ -644,7 +644,7 @@
 
         const newTracks = genFiles.map(f => ({
           title: f.title,
-          src: f.file.name,
+          src: 'muzyka/' + f.file.name,
         }));
 
         if (genMode === 'full') {
