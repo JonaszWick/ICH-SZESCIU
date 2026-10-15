@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICH SZEŚĆU</title>
+  <!-- Skrypt Supabase oraz Twój plik konfiguracyjny -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabaseClient.js"></script>
+  
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; border-radius: 0 !important; }
 
@@ -91,7 +95,6 @@
     }
     .back:hover { background: #111; border-color: #666; }
 
-    /* Duża okładka 540x540 wyśrodkowana */
     .single-album-cover {
       display: block;
       width: min(540px, 100%);
@@ -123,45 +126,57 @@
     .track {
       display: flex; justify-content: space-between; align-items: center;
       padding: 12px 8px; border-bottom: 1px solid #111;
-      gap: 10px; cursor: pointer; transition: background 0.15s;
+      gap: 10px; transition: background 0.15s;
     }
     .track:hover { background: #0f0f0f; }
     .track.playing .track-title { color: #1db954; font-weight: bold; }
     .track.playing::before { content: "▶ "; color: #1db954; }
 
-    .track-text { flex: 1; min-width: 0; }
+    .track-text { flex: 1; min-width: 0; cursor: pointer; }
     .track-title { font-size: 15px; display: block; }
     .track-author {
       font-size: 12px; color: #888; font-style: italic;
       display: block; margin-top: 2px;
     }
+    
+    .track-actions {
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+    }
+    .dislike-btn {
+      background: transparent; border: 1px solid #333; color: #aaa;
+      padding: 4px 8px; cursor: pointer; font-size: 13px;
+      font-family: inherit; transition: all 0.15s;
+    }
+    .dislike-btn:hover { border-color: #f66; color: #f66; background: #200; }
+    .stats-info {
+      font-size: 11px; color: #778899; text-align: right; min-width: 60px;
+    }
+
     .track-duration {
       font-size: 13px; color: #888;
-      font-variant-numeric: tabular-nums; flex-shrink: 0;
+      font-variant-numeric: tabular-nums; flex-shrink: 0; cursor: pointer;
     }
 
     #opis p { font-size: 18px; color: #ffffff; text-align: center; }
     .error-msg { text-align: center; color: #f66; padding: 40px 0; }
 
+    /* ============ TOP 10 LISTA ============ */
+    .top-list { list-style: none; border-top: 1px solid #222; }
+    .top-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 10px; border-bottom: 1px solid #111; font-size: 14px;
+    }
+    .top-item:hover { background: #0f0f0f; }
+
     /* ============ LATAJĄCE BAKTERIE ============ */
     #floating-layer {
-      position: fixed;
-      inset: 0;
-      overflow: hidden;
-      pointer-events: none;
-      z-index: 1;
+      position: fixed; inset: 0; overflow: hidden;
+      pointer-events: none; z-index: 1;
     }
     .floating-item {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 160px;
-      height: 160px;
-      object-fit: contain;
-      opacity: 0.75;
-      will-change: transform;
-      user-select: none;
-      -webkit-user-drag: none;
+      position: absolute; top: 0; left: 0;
+      width: 160px; height: 160px; object-fit: contain;
+      opacity: 0.75; will-change: transform; user-select: none;
       pointer-events: none;
     }
 
@@ -241,9 +256,7 @@
       width: 12px; height: 12px; background: #fff;
       border-radius: 50% !important;
       transform: translate(-50%, -50%) scale(0);
-      transition: transform 0.15s;
-      pointer-events: none;
-      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+      transition: transform 0.15s; pointer-events: none;
     }
     .seek-bar:hover .seek-handle { transform: translate(-50%, -50%) scale(1); }
 
@@ -260,249 +273,31 @@
     .volume-track {
       width: 100%; height: 4px; background: #333;
       position: relative; border-radius: 2px;
-      transition: background 0.15s;
     }
-    .volume-bar:hover .volume-track { background: #555; }
     .volume-fill {
       position: absolute; top: 0; left: 0;
-      height: 100%; background: #fff; border-radius: 2px;
-      width: 100%; pointer-events: none;
+      height: 100%; background: #fff; border-radius: 2px; width: 100%; pointer-events: none;
     }
-    .volume-bar:hover .volume-fill { background: #1db954; }
     .volume-handle {
       position: absolute; top: 50%; left: 100%;
       width: 12px; height: 12px; background: #fff;
       border-radius: 50% !important;
-      transform: translate(-50%, -50%) scale(0);
-      transition: transform 0.15s;
-      pointer-events: none;
-      box-shadow: 0 0 4px rgba(0,0,0,0.8);
+      transform: translate(-50%, -50%) scale(0); pointer-events: none;
     }
     .volume-bar:hover .volume-handle { transform: translate(-50%, -50%) scale(1); }
 
-    @media (max-width: 900px) {
-      .player-left { width: 160px; }
-      .player-right { width: 110px; }
-    }
     @media (max-width: 700px) {
       .player-left { width: auto; min-width: 0; flex: 0 1 auto; max-width: 130px; }
       .player-left img { width: 160px; height: 160px; }
-      .player-info .t { font-size: 12px; }
-      .player-info .a { font-size: 10px; }
-      #player { padding: 8px 10px; gap: 8px; }
-      .player-controls { gap: 8px; }
       .player-progress .time { display: none; }
-      .player-progress { max-width: 100%; }
       .player-right { display: none; }
-
-      .album-header { gap: 15px; }
       .album-cover { width: 110px; height: 110px; }
-
       .single-album-meta h1 { font-size: 22px; }
-      .floating-item { width: 30px; height: 30px; }
-    }
-
-    /* ==================== GENERATOR ==================== */
-    #generator-modal {
-      display: none;
-      position: fixed; top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.9);
-      justify-content: center; align-items: flex-start;
-      padding: 30px 15px; overflow-y: auto;
-      z-index: 9999;
-      font-family: Consolas, Monaco, monospace;
-    }
-    #generator-modal.open { display: flex; }
-
-    .gen-box {
-      background: #0a0a0a; border: 1px solid #444;
-      width: 100%; max-width: 820px; padding: 25px;
-    }
-    .gen-box h2 { font-size: 18px; margin-bottom: 5px; color: #fff; font-family: inherit; }
-    .gen-box .hint { font-size: 12px; color: #888; margin-bottom: 20px; }
-    .gen-close {
-      float: right; background: transparent;
-      border: 1px solid #444; color: #fff;
-      padding: 5px 12px; cursor: pointer;
-      font-family: inherit; font-size: 14px;
-    }
-    .gen-close:hover { background: #500; }
-
-    .gen-tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 20px; }
-    .gen-tab {
-      background: transparent; border: none;
-      color: #888; padding: 10px 20px;
-      cursor: pointer; font-family: inherit;
-      font-size: 14px;
-      border-bottom: 2px solid transparent;
-      margin-bottom: -1px;
-    }
-    .gen-tab.active { color: #fff; border-bottom-color: #fff; }
-
-    .gen-panel { display: none; }
-    .gen-panel.active { display: block; }
-
-    .gen-box label {
-      display: block; font-size: 12px; color: #aaa;
-      margin-bottom: 5px; margin-top: 15px;
-    }
-    .gen-box input[type="text"],
-    .gen-box select {
-      width: 100%; padding: 8px 10px;
-      background: #000; color: #fff;
-      border: 1px solid #444;
-      font-family: inherit; font-size: 13px;
-    }
-    .gen-box input[type="file"] {
-      width: 100%; padding: 8px;
-      background: #000; color: #fff;
-      border: 1px dashed #666;
-      font-family: inherit; font-size: 13px;
-      cursor: pointer;
-    }
-    .gen-box input[type="file"]::file-selector-button {
-      background: #222; color: #fff;
-      border: 1px solid #555;
-      padding: 5px 12px; margin-right: 10px;
-      cursor: pointer; font-family: inherit;
-    }
-
-    .gen-file-list {
-      margin-top: 15px;
-      border: 1px solid #333;
-      max-height: 340px; overflow-y: auto;
-    }
-    .gen-file-row {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
-      gap: 8px; align-items: center;
-      padding: 8px; border-bottom: 1px solid #1a1a1a;
-    }
-    .gen-file-row:last-child { border-bottom: none; }
-    .gen-file-row .filename {
-      font-size: 11px; color: #888;
-      word-break: break-all;
-      font-family: Consolas, monospace;
-    }
-    .gen-file-row input {
-      padding: 5px 8px;
-      background: #000; color: #fff;
-      border: 1px solid #444;
-      font-family: inherit; font-size: 13px;
-      width: 100%; min-width: 0;
-    }
-    .gen-file-row .remove {
-      background: #300; color: #fff;
-      border: none; padding: 5px 10px;
-      cursor: pointer; font-size: 12px; flex-shrink: 0;
-    }
-    .gen-file-row .remove:hover { background: #600; }
-
-    .gen-empty { padding: 20px; text-align: center; color: #555; font-size: 12px; }
-
-    .gen-existing-editor {
-      margin-top: 20px;
-      border: 1px solid #333; padding: 12px;
-    }
-    .gen-existing-editor h3 {
-      font-size: 13px; color: #fff;
-      margin-bottom: 10px;
-      font-family: inherit; font-weight: normal;
-    }
-    .gen-existing-editor .hint {
-      font-size: 11px; color: #888; margin-bottom: 10px;
-    }
-    .gen-existing-track {
-      display: grid;
-      grid-template-columns: 25px minmax(0, 2fr) minmax(0, 1fr);
-      gap: 8px; align-items: center;
-      padding: 6px 0; border-bottom: 1px solid #1a1a1a;
-    }
-    .gen-existing-track:last-child { border-bottom: none; }
-    .gen-existing-track .tnum {
-      font-size: 11px; color: #666; text-align: right;
-    }
-    .gen-existing-track .tinfo { min-width: 0; }
-    .gen-existing-track .ttitle {
-      font-size: 12px; color: #ddd;
-      word-break: break-word; margin-bottom: 4px;
-    }
-    .gen-existing-track .tsrc {
-      font-size: 10px; color: #555; word-break: break-all;
-    }
-    .gen-existing-track input {
-      padding: 5px 8px;
-      background: #000; color: #fff;
-      border: 1px solid #444;
-      font-family: inherit; font-size: 12px;
-      min-width: 0; width: 100%;
-    }
-
-    .gen-actions {
-      display: flex; gap: 10px; flex-wrap: wrap;
-      margin-top: 20px; padding-top: 20px;
-      border-top: 1px solid #333;
-    }
-    .gen-actions button {
-      padding: 10px 18px;
-      font-family: inherit; font-size: 13px;
-      cursor: pointer; border: 1px solid #555;
-      background: #111; color: #fff;
-    }
-    .gen-actions button.primary {
-      background: #fff; color: #000;
-      border-color: #fff; font-weight: bold;
-    }
-    .gen-actions button.primary:hover { background: #ddd; }
-    .gen-actions button:hover { background: #222; }
-    .gen-actions button.primary:hover { background: #ddd; }
-
-    .gen-output { margin-top: 20px; }
-    .gen-output textarea {
-      width: 100%; min-height: 300px;
-      padding: 12px;
-      background: #000; color: #6f6;
-      border: 1px solid #444;
-      font-family: Consolas, Monaco, monospace;
-      font-size: 12px; line-height: 1.5;
-      resize: vertical; white-space: pre;
-      overflow-x: auto;
-    }
-
-    .gen-toast {
-      position: fixed; bottom: 90px; left: 50%;
-      transform: translateX(-50%);
-      background: #0a0; color: #fff;
-      padding: 10px 20px;
-      font-family: Consolas, monospace;
-      font-size: 13px;
-      opacity: 0; transition: opacity 0.3s;
-      pointer-events: none; z-index: 10000;
-    }
-    .gen-toast.show { opacity: 1; }
-
-    .gen-info {
-      background: #1a1a00; border: 1px solid #666600;
-      padding: 10px; font-size: 11px; color: #ffd700;
-      margin-top: 15px; line-height: 1.5;
-    }
-
-    .mode-toggle { display: flex; gap: 5px; margin-bottom: 10px; width: 100%; }
-    .mode-toggle button {
-      flex: 1; padding: 8px;
-      background: #111; color: #888;
-      border: 1px solid #444;
-      cursor: pointer; font-family: inherit; font-size: 12px;
-    }
-    .mode-toggle button.active {
-      background: #fff; color: #000; border-color: #fff;
     }
   </style>
 </head>
 <body>
 
-  <!-- Latające obrazki (warstwa pod treścią) -->
   <div id="floating-layer"></div>
 
   <main>
@@ -517,6 +312,7 @@
         <div class="menu-title">Menu wygląda następująco:</div>
         <ul class="menu-list">
           <li><a onclick="showSection('dyskografia')">DYSKOGRAFIA</a> - nasze albumy i utwory do odsłuchu</li>
+          <li><a onclick="showSection('top-dislikes')" onclick="loadTopDislikes()">TOP 10 DISLIKE</a> - najbardziej nielubiane utwory</li>
           <li><a onclick="showSection('opis')">OPIS</a> - krótka informacja o zespole</li>
         </ul>
       </div>
@@ -527,6 +323,13 @@
     <section id="dyskografia" class="content-section">
       <h2 class="section-title">Dyskografia</h2>
       <div id="albums-container"></div>
+    </section>
+
+    <section id="top-dislikes" class="content-section">
+      <h2 class="section-title">TOP 10 Dislike 👎</h2>
+      <ul class="top-list" id="top-list-container">
+        <li style="text-align:center; padding: 20px; color: #888;">Ładowanie rankingu...</li>
+      </ul>
     </section>
 
     <section id="opis" class="content-section">
@@ -553,15 +356,9 @@
 
     <div class="player-center">
       <div class="player-controls">
-        <button class="player-btn" id="pl-prev" title="Poprzedni">
-          <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-        </button>
-        <button class="player-btn play-pause" id="pl-play" title="Play/Pauza">
-          <svg id="pl-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <button class="player-btn" id="pl-next" title="Następny">
-          <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
-        </button>
+        <button class="player-btn" id="pl-prev"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg></button>
+        <button class="player-btn play-pause" id="pl-play"><svg id="pl-play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+        <button class="player-btn" id="pl-next"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
       </div>
 
       <div class="player-progress">
@@ -577,9 +374,7 @@
     </div>
 
     <div class="player-right">
-      <button class="player-btn vol-btn" id="pl-mute" title="Wycisz / Włącz dźwięk">
-        <svg id="pl-vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-      </button>
+      <button class="player-btn vol-btn" id="pl-mute"><svg id="pl-vol-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg></button>
       <div class="volume-bar" id="pl-volume">
         <div class="volume-track">
           <div class="volume-fill" id="pl-volume-fill"></div>
@@ -591,101 +386,19 @@
 
   <audio id="audio-el" preload="metadata"></audio>
 
-  <!-- ==================== GENERATOR MODAL ==================== -->
-  <div id="generator-modal">
-    <div class="gen-box">
-      <button class="gen-close" onclick="closeGenerator()">✕ Zamknij</button>
-      <h2>⚙️ Generator albums.json</h2>
-      <div class="hint">Wpisz 6969 na klawiaturze, żeby otworzyć/zamknąć. Nic nie jest wysyłane na serwer.</div>
-
-      <div class="gen-tabs">
-        <button class="gen-tab active" onclick="switchTab('new')">➕ Nowy album</button>
-        <button class="gen-tab" onclick="switchTab('existing')">🎵 Dodaj do istniejącego</button>
-      </div>
-
-      <div class="gen-panel active" id="panel-new">
-        <label>Tytuł albumu</label>
-        <input type="text" id="gen-title" placeholder="np. BAKTERIA MUSIC">
-
-        <label>Slug (URL albumu — tylko litery, cyfry, myślnik i podkreślnik)</label>
-        <input type="text" id="gen-slug" placeholder="np. Bakteria-music">
-
-        <label>Rok wydania</label>
-        <input type="text" id="gen-year" placeholder="np. 2026">
-
-        <label>Nazwa pliku okładki (na GitHubie)</label>
-        <input type="text" id="gen-cover" placeholder="np. okladka1.jpg">
-
-        <label>Plik obrazka do latania (opcjonalnie — np. bakteria.png)</label>
-        <input type="text" id="gen-bgimage" placeholder="np. bakteria.png (puste = brak)">
-
-        <label>Pliki MP3 (możesz wybrać wiele naraz)</label>
-        <input type="file" id="gen-files" accept="audio/*" multiple>
-      </div>
-
-      <div class="gen-panel" id="panel-existing">
-        <label>Wybierz album</label>
-        <select id="gen-existing-select"></select>
-
-        <label>Plik obrazka do latania (dla wybranego albumu)</label>
-        <input type="text" id="gen-existing-bgimage" placeholder="np. bakteria.png (puste = brak)">
-
-        <label>Pliki MP3 do dodania</label>
-        <input type="file" id="gen-files-existing" accept="audio/*" multiple>
-
-        <div class="gen-existing-editor" id="gen-existing-editor">
-          <h3>✏️ Edytuj autorów istniejących utworów</h3>
-          <div class="hint">Pole autora obsługuje wielu autorów oddzielonych przecinkiem, np. <code>Tutel, Dwupak, JanuszWick</code></div>
-          <div id="gen-existing-tracks"></div>
-        </div>
-      </div>
-
-      <div class="gen-file-list" id="gen-file-list">
-        <div class="gen-empty">Wybierz pliki powyżej...</div>
-      </div>
-
-      <div class="gen-info">
-        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Autor może zawierać wielu wykonawców oddzielonych przecinkiem. Latający obrazek zapisuje się jako <code>bgImage</code> w JSON — jeśli pusty, nic nie lata.
-      </div>
-
-      <div class="gen-actions">
-        <div class="mode-toggle">
-          <button class="active" id="mode-full" onclick="setGenMode('full')">Pokaż cały plik</button>
-          <button id="mode-frag" onclick="setGenMode('frag')">Tylko nowy fragment</button>
-        </div>
-      </div>
-
-      <div class="gen-actions">
-        <button class="primary" onclick="generateOutput()">🚀 Generuj</button>
-        <button onclick="copyOutput()">📋 Kopiuj do schowka</button>
-      </div>
-
-      <div class="gen-output">
-        <textarea id="gen-output" readonly placeholder="Tutaj pojawi się wygenerowany JSON..."></textarea>
-      </div>
-    </div>
-  </div>
-
-  <div class="gen-toast" id="gen-toast">✅ Skopiowano!</div>
-
   <script>
     let albumsData = [];
-    let genFiles = [];
-    let genTab = 'new';
-    let genMode = 'full';
-    let existingAuthors = {};
-
     let playlist = [];
     let currentIndex = -1;
+    let trackStats = {}; // Przechowuje liczniki pobrane z bazy dla aktualnego albumu
 
-    // ===================== HELPERY =====================
+    // Generuje unikalny i stabilny ID utworu na podstawie jego ścieżki w pliku src
+    function getTrackId(src) {
+      return btoa(unescape(encodeURIComponent(src))).replace(/[^a-zA-Z0-9]/g, '_');
+    }
 
     function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function parseAuthorsList(authorStr) {
@@ -693,11 +406,7 @@
       const parts = String(authorStr).split(',');
       const seen = new Map();
       parts.forEach(part => {
-        const orig = part
-          .normalize('NFKC')
-          .replace(/[\u200B-\u200D\uFEFF]/g, '')
-          .replace(/\s+/g, ' ')
-          .trim();
+        const orig = part.trim();
         if (!orig) return;
         const key = orig.toLowerCase();
         if (!seen.has(key)) seen.set(key, orig);
@@ -727,16 +436,139 @@
       return m + ':' + (s < 10 ? '0' : '') + s;
     }
 
-    // ===================== LATAJĄCE OBRAZKI =====================
+    // ==================== SUPABASE: STATYSTYKI =====================
+
+    async function fetchAlbumStats(tracks) {
+      trackStats = {};
+      const ids = tracks.map(t => getTrackId(t.src));
+      
+      const { data, error } = await _supabase
+        .from('utwory')
+        .select('id, dislikes, views')
+        .in('id', ids);
+
+      if (!error && data) {
+        data.forEach(row => {
+          trackStats[row.id] = { dislikes: row.dislikes || 0, views: row.views || 0 };
+        });
+      }
+    }
+
+    async function registerView(trackSrc) {
+      const trackId = getTrackId(trackSrc);
+      const storageKey = `viewed_${trackId}`;
+      if (localStorage.getItem(storageKey)) return;
+
+      // Pobierz aktualny stan lub załóż 0
+      let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
+      let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
+      
+      const newViews = currentViews + 1;
+      if (!trackStats[trackId]) trackStats[trackId] = {};
+      trackStats[trackId].views = newViews;
+
+      // Aktualizuj w Supabase
+      const { error } = await _supabase
+        .from('utwory')
+        .upsert({ id: trackId, views: newViews, dislikes: currentDislikes }, { onConflict: ['id'] });
+
+      if (!error) {
+        localStorage.setItem(storageKey, 'true');
+        updateTrackUIStats(trackId);
+      }
+    }
+
+    async function handleDislike(trackSrc, btnElement) {
+      const trackId = getTrackId(trackSrc);
+      const storageKey = `disliked_${trackId}`;
+      
+      if (localStorage.getItem(storageKey)) {
+        alert("Już dałeś dislike temu utworowi!");
+        return;
+      }
+
+      let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
+      let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
+
+      const newDislikes = currentDislikes + 1;
+      if (!trackStats[trackId]) trackStats[trackId] = {};
+      trackStats[trackId].dislikes = newDislikes;
+
+      const { error } = await _supabase
+        .from('utwory')
+        .upsert({ id: trackId, dislikes: newDislikes, views: currentViews }, { onConflict: ['id'] });
+
+      if (!error) {
+        localStorage.setItem(storageKey, 'true');
+        updateTrackUIStats(trackId);
+        btnElement.style.color = '#f66';
+        btnElement.style.borderColor = '#f66';
+      } else {
+        alert("Wystąpił błąd podczas zapisywania dislika.");
+      }
+    }
+
+    function updateTrackUIStats(trackId) {
+      const statEl = document.getElementById(`stats_${trackId}`);
+      if (statEl && trackStats[trackId]) {
+        const d = trackStats[trackId].dislikes || 0;
+        const v = trackStats[trackId].views || 0;
+        statEl.textContent = `👎 ${d} | 👀 ${v}`;
+      }
+    }
+
+    async function loadTopDislikes() {
+      const container = document.getElementById('top-list-container');
+      container.innerHTML = '<li style="text-align:center; padding: 20px; color: #888;">Ładowanie rankingu...</li>';
+
+      const { data, error } = await _supabase
+        .from('utwory')
+        .select('*')
+        .order('dislikes', { ascending: false })
+        .limit(10);
+
+      if (error || !data || data.length === 0) {
+        container.innerHTML = '<li style="text-align:center; padding: 20px; color: #888;">Brak danych w rankingu.</li>';
+        return;
+      }
+
+      // Znajdź nazwy utworów w lokalnym albumsData dopasowując po ID
+      let html = '';
+      data.forEach((row, index) => {
+        let foundTitle = "Nieznany utwór";
+        let foundAlbum = "";
+
+        albumsData.forEach(album => {
+          album.tracks.forEach(t => {
+            if (getTrackId(t.src) === row.id) {
+              foundTitle = t.title;
+              foundAlbum = album.title;
+            }
+          });
+        });
+
+        html += `
+          <li class="top-item">
+            <div>
+              <strong>#${index + 1}. ${escapeHtml(foundTitle)}</strong>
+              ${foundAlbum ? `<div style="font-size:11px; color:#888;">Album: ${escapeHtml(foundAlbum)}</div>` : ''}
+            </div>
+            <div style="font-size: 13px; color: #f66;">
+              👎 ${row.dislikes} dislików &nbsp;|&nbsp; 👀 ${row.views} wyświetleń
+            </div>
+          </li>
+        `;
+      });
+      container.innerHTML = html;
+    }
+
+    // ==================== LATAJĄCE OBRAZKI =====================
 
     let floatingRafId = null;
     let floatingItems = [];
 
     function stopFloating() {
-      if (floatingRafId) {
-        cancelAnimationFrame(floatingRafId);
-        floatingRafId = null;
-      }
+      if (floatingRafId) { cancelAnimationFrame(floatingRafId); floatingRafId = null; }
       floatingItems = [];
       const layer = document.getElementById('floating-layer');
       if (layer) layer.innerHTML = '';
@@ -745,21 +577,14 @@
     function startFloating(imageSrc) {
       stopFloating();
       if (!imageSrc) return;
-
       const layer = document.getElementById('floating-layer');
       if (!layer) return;
 
-      // Liczba obrazków i rozmiar (na mobile mniejszy)
       const isMobile = window.innerWidth <= 700;
-      const COUNT = isMobile ? 10 : 14;
-      const SIZE = isMobile ? 160 : 160;
+      const COUNT = isMobile ? 8 : 12;
+      const SIZE = 140;
       const SPEED_MIN = 0.4;
       const SPEED_MAX = 1.2;
-
-      // Wczytaj obrazek, żeby wiedzieć czy nie ma błędu 404
-      const probe = new Image();
-      probe.onerror = () => { /* obrazek nie istnieje — nic nie rób */ };
-      probe.src = imageSrc;
 
       const W = () => window.innerWidth;
       const H = () => window.innerHeight;
@@ -768,7 +593,6 @@
         const img = document.createElement('img');
         img.src = imageSrc;
         img.className = 'floating-item';
-        img.alt = '';
         img.draggable = false;
 
         const x = Math.random() * Math.max(1, W() - SIZE);
@@ -780,35 +604,26 @@
 
         img.style.transform = `translate(${x}px, ${y}px)`;
         layer.appendChild(img);
-
         floatingItems.push({ el: img, x, y, vx, vy, size: SIZE });
       }
 
       let lastTime = performance.now();
-
       function step(now) {
         const dt = Math.min((now - lastTime) / 16.67, 3);
         lastTime = now;
-
-        const w = W();
-        const h = H();
+        const w = W(), h = H();
 
         floatingItems.forEach(it => {
           it.x += it.vx * dt;
           it.y += it.vy * dt;
-
           if (it.x <= 0) { it.x = 0; it.vx = Math.abs(it.vx); }
           else if (it.x + it.size >= w) { it.x = w - it.size; it.vx = -Math.abs(it.vx); }
-
           if (it.y <= 0) { it.y = 0; it.vy = Math.abs(it.vy); }
           else if (it.y + it.size >= h) { it.y = h - it.size; it.vy = -Math.abs(it.vy); }
-
           it.el.style.transform = `translate(${it.x}px, ${it.y}px)`;
         });
-
         floatingRafId = requestAnimationFrame(step);
       }
-
       floatingRafId = requestAnimationFrame(step);
     }
 
@@ -837,8 +652,6 @@
       else renderDiscographyView(false);
     });
 
-    // ===================== WIDOKI =====================
-
     function hideAllSections() {
       document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
     }
@@ -850,6 +663,10 @@
       const s = document.getElementById(id);
       if (s) s.classList.add('active');
       document.title = 'ICH SZEŚĆU';
+
+      if (id === 'top-dislikes') {
+        loadTopDislikes();
+      }
     }
 
     function renderDiscographyView(push = true) {
@@ -919,7 +736,7 @@
 
     // ===================== WIDOK POJEDYNCZEGO ALBUMU =====================
 
-    function renderSingleAlbum(slug, push = true) {
+    async function renderSingleAlbum(slug, push = true) {
       const view = document.getElementById('single-album-view');
       const content = document.getElementById('single-album-content');
 
@@ -932,6 +749,9 @@
         content.innerHTML = '<div class="error-msg">Nie znaleziono albumu o nazwie: ' + escapeHtml(slug) + '</div>';
         return;
       }
+
+      // Pobierz statystyki z Supabase dla wszystkich utworów z tego albumu
+      await fetchAlbumStats(album.tracks);
 
       playlist = album.tracks.map(t => ({
         title: t.title,
@@ -947,13 +767,21 @@
       let tracksHtml = '';
       album.tracks.forEach((track, idx) => {
         const trackAuthor = normalizeAuthorsString(track.author);
+        const trackId = getTrackId(track.src);
+        const stats = trackStats[trackId] || { dislikes: 0, views: 0 };
+        const isDisliked = localStorage.getItem(`disliked_${trackId}`);
+
         tracksHtml += `
-          <li class="track" data-idx="${idx}" onclick="playTrack(${idx})">
-            <div class="track-text">
+          <li class="track" data-idx="${idx}">
+            <div class="track-text" onclick="playTrack(${idx})">
               <span class="track-title">${escapeHtml(track.title)}</span>
               ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
-            <span class="track-duration" data-src="${encodeURI(track.src)}">--:--</span>
+            <div class="track-actions">
+              <span class="stats-info" id="stats_${trackId}">👎 ${stats.dislikes} | 👀 ${stats.views}</span>
+              <button class="dislike-btn" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" style="${isDisliked ? 'color: #f66; border-color: #f66;' : ''}">👎</button>
+              <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playTrack(${idx})">--:--</span>
+            </div>
           </li>
         `;
       });
@@ -974,7 +802,6 @@
       loadDurations();
       document.title = album.title + ' — ICH SZEŚĆU';
 
-      // Uruchom latające obrazki
       if (album.bgImage && album.bgImage.trim()) {
         startFloating(album.bgImage.trim());
       } else {
@@ -1013,7 +840,6 @@
     const plSeek = document.getElementById('pl-seek');
     const plFill = document.getElementById('pl-fill');
     const plHandle = document.getElementById('pl-handle');
-
     const plMute = document.getElementById('pl-mute');
     const plVolIcon = document.getElementById('pl-vol-icon');
     const plVolume = document.getElementById('pl-volume');
@@ -1027,6 +853,9 @@
 
       audio.src = encodeURI(item.src);
       audio.play().catch(err => console.log('Play error:', err));
+
+      // Zaliczenie wyświetlenia w Supabase po uruchomieniu utworu
+      registerView(item.src);
 
       playerEl.classList.remove('hidden');
       plCover.src = encodeURI(item.cover);
@@ -1069,7 +898,6 @@
 
     audio.addEventListener('play', () => updatePlayIcon(true));
     audio.addEventListener('pause', () => updatePlayIcon(false));
-
     audio.addEventListener('ended', () => {
       if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1);
       else updatePlayIcon(false);
@@ -1094,16 +922,10 @@
       const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
       const pct = x / rect.width;
       audio.currentTime = pct * audio.duration;
-      plFill.style.width = (pct * 100) + '%';
-      plHandle.style.left = (pct * 100) + '%';
     }
     plSeek.addEventListener('mousedown', (e) => { isSeeking = true; seekTo(e); });
     document.addEventListener('mousemove', (e) => { if (isSeeking) seekTo(e); });
     document.addEventListener('mouseup', () => { isSeeking = false; });
-
-    plSeek.addEventListener('touchstart', (e) => { isSeeking = true; seekTo(e.touches[0]); }, {passive: true});
-    document.addEventListener('touchmove', (e) => { if (isSeeking) seekTo(e.touches[0]); }, {passive: true});
-    document.addEventListener('touchend', () => { isSeeking = false; });
 
     let volume = parseFloat(localStorage.getItem('playerVolume'));
     if (isNaN(volume)) volume = 1;
@@ -1113,20 +935,7 @@
       audio.volume = volume;
       plVolFill.style.width = (volume * 100) + '%';
       plVolHandle.style.left = (volume * 100) + '%';
-      updateVolIcon();
       localStorage.setItem('playerVolume', volume);
-    }
-
-    function updateVolIcon() {
-      let path;
-      if (volume === 0) {
-        path = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
-      } else if (volume < 0.5) {
-        path = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
-      } else {
-        path = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
-      }
-      plVolIcon.innerHTML = path;
     }
 
     let isVolDragging = false;
@@ -1141,358 +950,15 @@
     document.addEventListener('mousemove', (e) => { if (isVolDragging) setVolumeFromEvent(e); });
     document.addEventListener('mouseup', () => { isVolDragging = false; });
 
-    plVolume.addEventListener('touchstart', (e) => { isVolDragging = true; setVolumeFromEvent(e.touches[0]); }, {passive: true});
-    document.addEventListener('touchmove', (e) => { if (isVolDragging) setVolumeFromEvent(e.touches[0]); }, {passive: true});
-    document.addEventListener('touchend', () => { isVolDragging = false; });
-
     plMute.addEventListener('click', () => {
-      if (volume > 0) {
-        lastVolume = volume;
-        volume = 0;
-      } else {
-        volume = lastVolume || 1;
-      }
+      volume = volume > 0 ? 0 : (lastVolume || 1);
       applyVolume();
     });
 
     applyVolume();
 
-    playerEl.addEventListener('contextmenu', (e) => e.preventDefault());
-    document.addEventListener('contextmenu', (e) => {
-      if (e.target.closest('.track')) e.preventDefault();
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.target.matches('input, textarea, select')) return;
-      if (e.code === 'Space' && currentIndex !== -1) {
-        e.preventDefault();
-        if (audio.paused) audio.play();
-        else audio.pause();
-      }
-    });
-
-    // ===================== 6969 GENERATOR =====================
-
-    let typed = '';
-    document.addEventListener('keydown', (e) => {
-      if (e.target.matches('input, textarea, select')) return;
-      if (e.key.length !== 1) return;
-      typed += e.key;
-      if (typed.length > 4) typed = typed.slice(-4);
-      if (typed === '6969') {
-        typed = '';
-        toggleGenerator();
-      }
-    });
-
-    function toggleGenerator() {
-      const modal = document.getElementById('generator-modal');
-      if (modal.classList.contains('open')) closeGenerator();
-      else openGenerator();
-    }
-
-    function openGenerator() {
-      const modal = document.getElementById('generator-modal');
-      modal.classList.add('open');
-      refreshExistingSelect();
-      refreshExistingEditor();
-      document.body.style.overflow = 'hidden';
-    }
-
-    function closeGenerator() {
-      document.getElementById('generator-modal').classList.remove('open');
-      document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') closeGenerator();
-    });
-
-    function switchTab(tab) {
-      genTab = tab;
-      document.querySelectorAll('.gen-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.gen-panel').forEach(p => p.classList.remove('active'));
-
-      if (tab === 'new') {
-        document.querySelectorAll('.gen-tab')[0].classList.add('active');
-        document.getElementById('panel-new').classList.add('active');
-      } else {
-        document.querySelectorAll('.gen-tab')[1].classList.add('active');
-        document.getElementById('panel-existing').classList.add('active');
-        refreshExistingSelect();
-        refreshExistingEditor();
-      }
-
-      genFiles = [];
-      renderGenFiles();
-      document.getElementById('gen-files').value = '';
-      document.getElementById('gen-files-existing').value = '';
-    }
-
-    function refreshExistingSelect() {
-      const select = document.getElementById('gen-existing-select');
-      if (!select) return;
-      const prev = select.value;
-      select.innerHTML = '';
-      albumsData.forEach((album, i) => {
-        select.innerHTML += `<option value="${i}">${escapeHtml(album.title)} (${escapeHtml(album.year)})</option>`;
-      });
-      if (!albumsData.length) {
-        select.innerHTML = '<option>Brak albumów</option>';
-      } else if (prev && albumsData[prev]) {
-        select.value = prev;
-      }
-    }
-
-    function refreshExistingEditor() {
-      const container = document.getElementById('gen-existing-tracks');
-      const select = document.getElementById('gen-existing-select');
-      const bgInput = document.getElementById('gen-existing-bgimage');
-      if (!container || !select) return;
-
-      const albumIdx = parseInt(select.value, 10);
-      if (isNaN(albumIdx) || !albumsData[albumIdx]) {
-        container.innerHTML = '<div class="gen-empty">Brak albumu do edycji.</div>';
-        if (bgInput) bgInput.value = '';
-        return;
-      }
-
-      const album = albumsData[albumIdx];
-
-      if (bgInput) bgInput.value = album.bgImage || '';
-
-      if (!existingAuthors[albumIdx] || existingAuthors[albumIdx].length !== album.tracks.length) {
-        existingAuthors[albumIdx] = album.tracks.map(t => t.author || '');
-      }
-
-      const authors = existingAuthors[albumIdx];
-
-      container.innerHTML = '';
-      album.tracks.forEach((track, tIdx) => {
-        const row = document.createElement('div');
-        row.className = 'gen-existing-track';
-
-        const num = document.createElement('span');
-        num.className = 'tnum';
-        num.textContent = (tIdx + 1) + '.';
-
-        const info = document.createElement('div');
-        info.className = 'tinfo';
-        info.innerHTML = `<div class="ttitle">${escapeHtml(track.title)}</div><div class="tsrc">${escapeHtml(track.src)}</div>`;
-
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Autorzy (oddziel przecinkiem)';
-        input.value = authors[tIdx] || '';
-        input.addEventListener('input', () => {
-          existingAuthors[albumIdx][tIdx] = input.value;
-        });
-
-        row.appendChild(num);
-        row.appendChild(info);
-        row.appendChild(input);
-        container.appendChild(row);
-      });
-    }
-
-    document.getElementById('gen-existing-select').addEventListener('change', () => {
-      refreshExistingEditor();
-    });
-
-    function handleGenFiles(fileList) {
-      for (const file of fileList) {
-        const title = file.name.replace(/\.[^/.]+$/, '');
-        genFiles.push({ file, title, author: '' });
-      }
-      renderGenFiles();
-    }
-
-    function renderGenFiles() {
-      const container = document.getElementById('gen-file-list');
-      if (!genFiles.length) {
-        container.innerHTML = '<div class="gen-empty">Wybierz pliki powyżej...</div>';
-        return;
-      }
-
-      container.innerHTML = '';
-      genFiles.forEach((item, index) => {
-        const row = document.createElement('div');
-        row.className = 'gen-file-row';
-
-        const fn = document.createElement('span');
-        fn.className = 'filename';
-        fn.textContent = item.file.name;
-
-        const titleInput = document.createElement('input');
-        titleInput.type = 'text';
-        titleInput.placeholder = 'Tytuł';
-        titleInput.value = item.title || '';
-        titleInput.addEventListener('input', () => {
-          genFiles[index].title = titleInput.value;
-        });
-
-        const authorInput = document.createElement('input');
-        authorInput.type = 'text';
-        authorInput.placeholder = 'Autorzy (oddziel przecinkiem)';
-        authorInput.value = item.author || '';
-        authorInput.addEventListener('input', () => {
-          genFiles[index].author = authorInput.value;
-        });
-
-        const btn = document.createElement('button');
-        btn.className = 'remove';
-        btn.textContent = '✕';
-        btn.addEventListener('click', () => removeGenFile(index));
-
-        row.appendChild(fn);
-        row.appendChild(titleInput);
-        row.appendChild(authorInput);
-        row.appendChild(btn);
-        container.appendChild(row);
-      });
-    }
-
-    function removeGenFile(index) {
-      genFiles.splice(index, 1);
-      renderGenFiles();
-    }
-
-    function setGenMode(mode) {
-      genMode = mode;
-      document.getElementById('mode-full').classList.toggle('active', mode === 'full');
-      document.getElementById('mode-frag').classList.toggle('active', mode === 'frag');
-    }
-
-    function makeTrack(file, author, title) {
-      const t = {
-        title: title || file.name.replace(/\.[^/.]+$/, ''),
-        src: 'Muzyka/' + file.name,
-      };
-      const a = normalizeAuthorsString(author);
-      if (a) t.author = a;
-      return t;
-    }
-
-    function generateOutput() {
-      const out = document.getElementById('gen-output');
-
-      if (genTab === 'new') {
-        const title = document.getElementById('gen-title').value.trim();
-        const slug = document.getElementById('gen-slug').value.trim();
-        const year = document.getElementById('gen-year').value.trim();
-        const cover = document.getElementById('gen-cover').value.trim();
-        const bgImage = document.getElementById('gen-bgimage').value.trim();
-
-        if (!title || !slug || !year || !cover) {
-          out.value = '⚠️ Uzupełnij tytuł, slug, rok i nazwę okładki.';
-          return;
-        }
-        if (!/^[A-Za-z0-9_-]+$/.test(slug)) {
-          out.value = '⚠️ Slug może zawierać tylko litery (bez polskich znaków), cyfry, myślnik i podkreślnik.';
-          return;
-        }
-        const slugTaken = albumsData.some(a => (a.slug || '').toLowerCase() === slug.toLowerCase());
-        if (slugTaken) {
-          out.value = '⚠️ Album o tym slug już istnieje w albums.json.';
-          return;
-        }
-        if (!genFiles.length) {
-          out.value = '⚠️ Wybierz przynajmniej jeden plik MP3.';
-          return;
-        }
-
-        const newAlbum = { title, slug, year, cover };
-        if (bgImage) newAlbum.bgImage = bgImage;
-        newAlbum.tracks = genFiles.map(f => makeTrack(f.file, f.author, f.title));
-
-        if (genMode === 'full') {
-          const full = [...albumsData, newAlbum];
-          out.value = JSON.stringify(full, null, 2);
-        } else {
-          out.value = JSON.stringify(newAlbum, null, 2);
-        }
-
-      } else {
-        const select = document.getElementById('gen-existing-select');
-        const index = parseInt(select.value, 10);
-
-        if (isNaN(index) || !albumsData[index]) {
-          out.value = '⚠️ Wybierz istniejący album.';
-          return;
-        }
-
-        const album = albumsData[index];
-        const editedAuthors = existingAuthors[index] || album.tracks.map(t => t.author || '');
-        const newBgImage = document.getElementById('gen-existing-bgimage').value.trim();
-
-        const hasNewFiles = genFiles.length > 0;
-        const hasAuthorChanges = album.tracks.some((t, i) =>
-          normalizeAuthorsString(editedAuthors[i]) !== normalizeAuthorsString(t.author || '')
-        );
-        const hasBgChange = (album.bgImage || '') !== newBgImage;
-
-        if (!hasNewFiles && !hasAuthorChanges && !hasBgChange) {
-          out.value = '⚠️ Nic do zrobienia — wybierz pliki MP3, zmień autorów lub ustaw latający obrazek.';
-          return;
-        }
-
-        const updatedTracks = album.tracks.map((t, i) => {
-          const copy = { title: t.title, src: t.src };
-          const a = normalizeAuthorsString(editedAuthors[i]);
-          if (a) copy.author = a;
-          return copy;
-        });
-
-        if (hasNewFiles) {
-          const newTracks = genFiles.map(f => makeTrack(f.file, f.author, f.title));
-          updatedTracks.push(...newTracks);
-        }
-
-        if (genMode === 'full') {
-          const full = JSON.parse(JSON.stringify(albumsData));
-          full[index].tracks = updatedTracks;
-          if (newBgImage) full[index].bgImage = newBgImage;
-          else delete full[index].bgImage;
-          out.value = JSON.stringify(full, null, 2);
-        } else {
-          // tryb fragmentu: zwróć cały zaktualizowany obiekt albumu (łatwo podmienić w pliku)
-          const updatedAlbum = {
-            title: album.title,
-            slug: album.slug,
-            year: album.year,
-            cover: album.cover,
-          };
-          if (newBgImage) updatedAlbum.bgImage = newBgImage;
-          updatedAlbum.tracks = updatedTracks;
-          out.value = JSON.stringify(updatedAlbum, null, 2);
-        }
-      }
-    }
-
-    async function copyOutput() {
-      const out = document.getElementById('gen-output');
-      if (!out.value.trim()) return;
-      try {
-        await navigator.clipboard.writeText(out.value);
-        showToast('✅ Skopiowano do schowka!');
-      } catch (err) {
-        out.select();
-        document.execCommand('copy');
-        showToast('✅ Skopiowano!');
-      }
-    }
-
-    function showToast(text) {
-      const toast = document.getElementById('gen-toast');
-      toast.textContent = text;
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 1800);
-    }
-
-    // ===================== START =====================
-
-    window.addEventListener('DOMContentLoaded', () => {
-      loadAlbums();
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadAlbums();
     });
   </script>
 
