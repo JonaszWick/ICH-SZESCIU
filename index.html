@@ -139,18 +139,25 @@
     }
     
     .track-actions {
-      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
     }
-    .dislike-btn {
-      background: transparent; border: 1px solid #333; color: #777;
-      padding: 3px 8px; cursor: pointer; font-size: 12px; font-weight: bold;
-      font-family: monospace; transition: all 0.15s;
+    
+    /* Obsługa obrazków dislikeoff / dislikeon */
+    .dislike-img-btn {
+      background: transparent; border: none; cursor: pointer; padding: 2px;
+      display: flex; align-items: center; opacity: 0.6; transition: opacity 0.15s, transform 0.1s;
     }
-    .dislike-btn:hover { border-color: #fff; color: #fff; background: #111; }
-    .dislike-btn.active { border-color: #f66; color: #f66; background: #200; }
+    .dislike-img-btn img { width: 20px; height: 20px; object-fit: contain; }
+    .dislike-img-btn:hover { opacity: 0.9; }
+    .dislike-img-btn.active { opacity: 1; }
 
-    .stats-info {
-      font-size: 11px; color: #778899; text-align: right; min-width: 65px;
+    .stat-container {
+      display: flex; align-items: center; gap: 4px; font-size: 12px; color: #aaa;
+    }
+    .stat-container img { width: 14px; height: 14px; object-fit: contain; }
+
+    .stats-group {
+      display: flex; align-items: center; gap: 10px; font-size: 12px; color: #888;
     }
 
     .track-duration {
@@ -337,19 +344,14 @@
       display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) auto;
       gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #1a1a1a;
     }
-    .gen-album-order-row {
-      grid-template-columns: 40px minmax(0, 1fr) auto auto;
-    }
+    .gen-album-order-row { grid-template-columns: 40px minmax(0, 1fr) auto auto; }
     .gen-file-row input, .gen-album-order-row input {
       padding: 5px 8px; background: #000; color: #fff; border: 1px solid #444; font-family: inherit; font-size: 12px; width: 100%;
     }
-    .gen-btn-sm {
-      background: #222; color: #fff; border: 1px solid #444; padding: 5px 10px; cursor: pointer; font-size: 11px;
-    }
+    .gen-btn-sm { background: #222; color: #fff; border: 1px solid #444; padding: 5px 10px; cursor: pointer; font-size: 11px; }
     .gen-btn-sm:hover { background: #444; }
     .gen-btn-danger { background: #300; border-color: #500; }
     .gen-btn-danger:hover { background: #600; }
-
     .gen-empty { padding: 20px; text-align: center; color: #555; font-size: 12px; }
 
     .gen-existing-editor { margin-top: 15px; border: 1px solid #333; padding: 12px; }
@@ -478,84 +480,61 @@
 
   <audio id="audio-el" preload="metadata"></audio>
 
-  <!-- ==================== SUPER GENERATOR MODAL ==================== -->
+  <!-- ==================== GENERATOR MODAL ==================== -->
   <div id="generator-modal">
     <div class="gen-box">
       <button class="gen-close" onclick="closeGenerator()">✕ Zamknij</button>
       <h2>⚙️ Super Generator albums.json</h2>
-      <div class="hint">Wpisz 6969 na klawiaturze, żeby otworzyć/zamknąć. Twórz, edytuj i zmieniaj kolejność bez kodu!</div>
+      <div class="hint">Wpisz 6969 na klawiaturze, żeby otworzyć/zamknąć.</div>
 
       <div class="gen-tabs">
         <button class="gen-tab active" onclick="switchTab('new')">➕ Nowy album</button>
-        <button class="gen-tab" onclick="switchTab('existing')">🎵 Dodaj / Edytuj utwory</button>
+        <button class="gen-tab" onclick="switchTab('existing')">🎵 Edytuj utwory</button>
         <button class="gen-tab" onclick="switchTab('order')">↕️ Kolejność albumów</button>
       </div>
 
-      <!-- PANEL 1: NOWY ALBUM -->
       <div class="gen-panel active" id="panel-new">
         <label>Tytuł albumu</label>
         <input type="text" id="gen-title" placeholder="np. NOWY ALBUM">
-
-        <label>Slug (URL — tylko litery, cyfry, myślnik)</label>
+        <label>Slug (URL)</label>
         <input type="text" id="gen-slug" placeholder="np. Nowy-album">
-
         <label>Rok wydania</label>
         <input type="text" id="gen-year" placeholder="np. 2026">
-
-        <label>Nazwa pliku okładki (z GitHub)</label>
+        <label>Okładka</label>
         <input type="text" id="gen-cover" placeholder="np. okladka2.png">
-
-        <label>Obrazek do latania w tle (opcjonalnie)</label>
+        <label>Obrazek do latania</label>
         <input type="text" id="gen-bgimage" placeholder="np. bakteria.png">
-
-        <label>Wybierz pliki MP3 z komputera</label>
+        <label>Pliki MP3</label>
         <input type="file" id="gen-files" accept="audio/*" multiple>
-
-        <div class="gen-file-list" id="gen-file-list">
-          <div class="gen-empty">Brak wybranych plików MP3</div>
-        </div>
+        <div class="gen-file-list" id="gen-file-list"><div class="gen-empty">Brak plików</div></div>
       </div>
 
-      <!-- PANEL 2: EDYCJA UTWORÓW -->
       <div class="gen-panel" id="panel-existing">
-        <label>Wybierz album do edycji</label>
+        <label>Wybierz album</label>
         <select id="gen-existing-select"></select>
-
-        <label>Zmień okładkę albumu</label>
-        <input type="text" id="gen-existing-cover" placeholder="np. okladka1.png">
-
-        <label>Obrazek do latania w tle</label>
-        <input type="text" id="gen-existing-bgimage" placeholder="np. baktierrrra.png">
-
-        <label>Dodaj nowe pliki MP3 do tego albumu</label>
+        <label>Okładka</label>
+        <input type="text" id="gen-existing-cover">
+        <label>Obrazek do latania</label>
+        <input type="text" id="gen-existing-bgimage">
+        <label>Dodaj MP3</label>
         <input type="file" id="gen-files-existing" accept="audio/*" multiple>
-
-        <div class="gen-file-list" id="gen-files-existing-list" style="margin-bottom:15px;">
-          <div class="gen-empty">Brak nowych plików do dodania</div>
-        </div>
-
+        <div class="gen-file-list" id="gen-files-existing-list"><div class="gen-empty">Brak nowych plików</div></div>
         <div class="gen-existing-editor">
-          <h3 style="color:#fff; font-size:13px; margin-bottom:8px;">✏️ Istniejące utwory w albumie (możesz edytować tytuły, autorów, zmieniać kolejność lub usuwać)</h3>
+          <h3 style="color:#fff; font-size:13px; margin-bottom:8px;">✏️ Istniejące utwory</h3>
           <div id="gen-existing-tracks"></div>
         </div>
       </div>
 
-      <!-- PANEL 3: KOLEJNOŚĆ ALBUMÓW -->
       <div class="gen-panel" id="panel-order">
-        <div class="hint">Zarządzaj kolejnością wyświetlania albumów (Przesuwaj w górę/dół lub usuwaj całe albumy):</div>
         <div class="gen-albums-order-list" id="gen-albums-order-list"></div>
       </div>
 
       <div class="gen-actions">
-        <button class="primary" onclick="generateOutput()">🚀 Generuj całą strukturę JSON</button>
-        <button onclick="copyOutput()">📋 Kopiuj do schowka</button>
+        <button class="primary" onclick="generateOutput()">🚀 Generuj JSON</button>
+        <button onclick="copyOutput()">📋 Kopiuj</button>
       </div>
-
       <div style="margin-top: 15px;">
-        <label>Wygenerowany kod JSON (wklej go w całości do pliku <code>albums.json</code> na GitHubie):</label>
-        <div class="gen-output">
-          <textarea id="gen-output" readonly placeholder="Tutaj pojawi się gotowy kod..."></textarea>
-        </div>
+        <div class="gen-output"><textarea id="gen-output" readonly></textarea></div>
       </div>
     </div>
   </div>
@@ -612,9 +591,11 @@
       return m + ':' + (s < 10 ? '0' : '') + s;
     }
 
-    // ==================== SUPABASE STATS =====================
+    // ==================== SUPABASE & STATYSTYKI =====================
 
     let trackStats = {};
+    let currentPlayingSrc = null;
+    let viewRecordedForCurrentTrack = false;
 
     async function fetchAlbumStats(tracks) {
       trackStats = {};
@@ -631,21 +612,27 @@
       }
     }
 
-    async function registerView(trackSrc) {
-      const trackId = getTrackId(trackSrc);
-      const storageKey = `viewed_${trackId}`;
-      if (localStorage.getItem(storageKey)) return;
+    async function checkAndRegisterView(currentTime, duration, trackSrc) {
+      if (!duration || duration <= 0 || viewRecordedForCurrentTrack) return;
+      
+      const percent = (currentTime / duration) * 100;
+      if (percent >= 15) {
+        viewRecordedForCurrentTrack = true;
+        const trackId = getTrackId(trackSrc);
+        
+        let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
+        let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
+        const newViews = currentViews + 1;
+        
+        if (!trackStats[trackId]) trackStats[trackId] = {};
+        trackStats[trackId].views = newViews;
 
-      let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
-      let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
-      const newViews = currentViews + 1;
-      if (!trackStats[trackId]) trackStats[trackId] = {};
-      trackStats[trackId].views = newViews;
-
-      await _supabase
-        .from('utwory')
-        .upsert({ id: trackId, views: newViews, dislikes: currentDislikes }, { onConflict: ['id'] });
-      localStorage.setItem(storageKey, 'true');
+        await _supabase
+          .from('utwory')
+          .upsert({ id: trackId, views: newViews, dislikes: currentDislikes }, { onConflict: ['id'] });
+        
+        updateTrackUIStats(trackId);
+      }
     }
 
     async function handleDislike(trackSrc, btnElement) {
@@ -657,12 +644,18 @@
       let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
 
       let newDislikes;
+      const img = btnElement.querySelector('img');
+
       if (isAlreadyDisliked) {
         newDislikes = Math.max(0, currentDislikes - 1);
         localStorage.removeItem(storageKey);
+        btnElement.classList.remove('active');
+        if (img) img.src = 'dislikeoff.png';
       } else {
         newDislikes = currentDislikes + 1;
         localStorage.setItem(storageKey, 'true');
+        btnElement.classList.add('active');
+        if (img) img.src = 'dislikeon.png';
       }
 
       if (!trackStats[trackId]) trackStats[trackId] = {};
@@ -674,15 +667,18 @@
 
       if (!error) {
         updateTrackUIStats(trackId);
-        if (!isAlreadyDisliked) btnElement.classList.add('active');
-        else btnElement.classList.remove('active');
       }
     }
 
     function updateTrackUIStats(trackId) {
       const statEl = document.getElementById(`stats_${trackId}`);
       if (statEl && trackStats[trackId]) {
-        statEl.textContent = `[${trackStats[trackId].dislikes || 0}] | 👀 ${trackStats[trackId].views || 0}`;
+        const d = trackStats[trackId].dislikes || 0;
+        const v = trackStats[trackId].views || 0;
+        statEl.innerHTML = `
+          <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${d}</span>
+          <span class="stat-container"><img src="view.png" alt="views">${v}</span>
+        `;
       }
     }
 
@@ -720,8 +716,9 @@
               <strong>#${index + 1}. ${escapeHtml(foundTitle)}</strong>
               ${foundAlbum ? `<div style="font-size:11px; color:#888;">Album: ${escapeHtml(foundAlbum)}</div>` : ''}
             </div>
-            <div style="font-size: 13px; color: #f66;">
-              [-] ${row.dislikes} &nbsp;|&nbsp; 👀 ${row.views}
+            <div style="font-size: 13px; color: #f66; display:flex; gap:10px; align-items:center;">
+              <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${row.dislikes}</span>
+              <span class="stat-container"><img src="view.png" alt="views">${row.views}</span>
             </div>
           </li>
         `;
@@ -938,8 +935,13 @@
               ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
             <div class="track-actions">
-              <span class="stats-info" id="stats_${trackId}">[${stats.dislikes}] | 👀 ${stats.views}</span>
-              <button class="dislike-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Cofnij/daj dislike">[-]</button>
+              <div class="stats-group" id="stats_${trackId}">
+                <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${stats.dislikes}</span>
+                <span class="stat-container"><img src="view.png" alt="views">${stats.views}</span>
+              </div>
+              <button class="dislike-img-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Daj/cofnij dislike">
+                <img src="${isDisliked ? 'dislikeon.png' : 'dislikeoff.png'}" alt="Dislike">
+              </button>
               <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playTrack(${idx})">--:--</span>
             </div>
           </li>
@@ -1005,9 +1007,11 @@
       currentIndex = index;
       const item = playlist[index];
 
+      currentPlayingSrc = item.src;
+      viewRecordedForCurrentTrack = false;
+
       audio.src = encodeURI(item.src);
       audio.play().catch(err => console.log('Play error:', err));
-      registerView(item.src);
 
       playerEl.classList.remove('hidden');
       plCover.src = encodeURI(item.cover);
@@ -1036,12 +1040,17 @@
     audio.addEventListener('pause', () => updatePlayIcon(false));
     audio.addEventListener('ended', () => { if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1); else updatePlayIcon(false); });
     audio.addEventListener('loadedmetadata', () => { plDuration.textContent = formatTime(audio.duration); });
+    
     audio.addEventListener('timeupdate', () => {
       if (!audio.duration) return;
       const pct = (audio.currentTime / audio.duration) * 100;
       plFill.style.width = pct + '%';
       plHandle.style.left = pct + '%';
       plCurrent.textContent = formatTime(audio.currentTime);
+
+      if (currentPlayingSrc) {
+        checkAndRegisterView(audio.currentTime, audio.duration, currentPlayingSrc);
+      }
     });
 
     let isSeeking = false;
@@ -1079,7 +1088,7 @@
     plMute.addEventListener('click', () => { volume = volume > 0 ? 0 : (lastVolume || 1); applyVolume(); });
     applyVolume();
 
-    // ==================== SUPER GENERATOR (6969) =====================
+    // ==================== GENERATOR (6969) =====================
 
     let typed = '';
     document.addEventListener('keydown', (e) => {
@@ -1130,7 +1139,6 @@
       }
     }
 
-    // Obsługa plików dla Nowego Albumu
     document.getElementById('gen-files').addEventListener('change', (e) => {
       for (const file of e.target.files) {
         genFiles.push({ file, title: file.name.replace(/\.[^/.]+$/, ''), author: '' });
@@ -1140,7 +1148,7 @@
 
     function renderGenFiles() {
       const container = document.getElementById('gen-file-list');
-      if (!genFiles.length) { container.innerHTML = '<div class="gen-empty">Brak wybranych plików MP3</div>'; return; }
+      if (!genFiles.length) { container.innerHTML = '<div class="gen-empty">Brak plików</div>'; return; }
       container.innerHTML = '';
       genFiles.forEach((item, index) => {
         const row = document.createElement('div');
@@ -1148,14 +1156,13 @@
         row.innerHTML = `
           <span style="font-size:11px; color:#888; word-break:break-all;">${escapeHtml(item.file.name)}</span>
           <input type="text" placeholder="Tytuł" value="${escapeHtml(item.title)}" oninput="genFiles[${index}].title = this.value">
-          <input type="text" placeholder="Autorzy (po przecinku)" value="${escapeHtml(item.author)}" oninput="genFiles[${index}].author = this.value">
+          <input type="text" placeholder="Autorzy" value="${escapeHtml(item.author)}" oninput="genFiles[${index}].author = this.value">
           <button class="gen-btn-sm gen-btn-danger" onclick="genFiles.splice(${index},1); renderGenFiles()">✕</button>
         `;
         container.appendChild(row);
       });
     }
 
-    // Obsługa plików dodawanych do istniejącego albumu
     document.getElementById('gen-files-existing').addEventListener('change', (e) => {
       for (const file of e.target.files) {
         genFilesExisting.push({ file, title: file.name.replace(/\.[^/.]+$/, ''), author: '' });
@@ -1165,7 +1172,7 @@
 
     function renderGenFilesExisting() {
       const container = document.getElementById('gen-files-existing-list');
-      if (!genFilesExisting.length) { container.innerHTML = '<div class="gen-empty">Brak nowych plików do dodania</div>'; return; }
+      if (!genFilesExisting.length) { container.innerHTML = '<div class="gen-empty">Brak nowych plików</div>'; return; }
       container.innerHTML = '';
       genFilesExisting.forEach((item, index) => {
         const row = document.createElement('div');
@@ -1173,7 +1180,7 @@
         row.innerHTML = `
           <span style="font-size:11px; color:#888; word-break:break-all;">${escapeHtml(item.file.name)}</span>
           <input type="text" placeholder="Tytuł" value="${escapeHtml(item.title)}" oninput="genFilesExisting[${index}].title = this.value">
-          <input type="text" placeholder="Autorzy (po przecinku)" value="${escapeHtml(item.author)}" oninput="genFilesExisting[${index}].author = this.value">
+          <input type="text" placeholder="Autorzy" value="${escapeHtml(item.author)}" oninput="genFilesExisting[${index}].author = this.value">
           <button class="gen-btn-sm gen-btn-danger" onclick="genFilesExisting.splice(${index},1); renderGenFilesExisting()">✕</button>
         `;
         container.appendChild(row);
@@ -1217,9 +1224,9 @@
           <input type="text" value="${escapeHtml(existingTitles[albumIdx][tIdx])}" oninput="existingTitles[${albumIdx}][${tIdx}] = this.value" placeholder="Tytuł">
           <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[albumIdx][${tIdx}] = this.value" placeholder="Autorzy">
           <div style="display:flex; gap:3px;">
-            ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)" title="W górę">▲</button>` : ''}
-            ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)" title="W dół">▼</button>` : ''}
-            <button class="gen-btn-sm gen-btn-danger" onclick="removeExistingTrack(${albumIdx}, ${tIdx})" title="Usuń">✕</button>
+            ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)">▲</button>` : ''}
+            ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)">▼</button>` : ''}
+            <button class="gen-btn-sm gen-btn-danger" onclick="removeExistingTrack(${albumIdx}, ${tIdx})">✕</button>
           </div>
         `;
         container.appendChild(row);
@@ -1230,14 +1237,12 @@
       const tracks = albumsData[albumIdx].tracks;
       const authors = existingAuthors[albumIdx];
       const titles = existingTitles[albumIdx];
-
       const target = tIdx + direction;
       if (target < 0 || target >= tracks.length) return;
 
       [tracks[tIdx], tracks[target]] = [tracks[target], tracks[tIdx]];
       [authors[tIdx], authors[target]] = [authors[target], authors[tIdx]];
       [titles[tIdx], titles[target]] = [titles[target], titles[tIdx]];
-
       refreshExistingEditor();
     }
 
@@ -1248,7 +1253,6 @@
       refreshExistingEditor();
     }
 
-    // Zarządzanie kolejnością albumów
     function refreshAlbumsOrderList() {
       const container = document.getElementById('gen-albums-order-list');
       if (!albumsData.length) { container.innerHTML = '<div class="gen-empty">Brak albumów</div>'; return; }
@@ -1258,12 +1262,12 @@
         row.className = 'gen-album-order-row';
         row.innerHTML = `
           <span style="font-size:11px; color:#888; text-align:center;">#${idx + 1}</span>
-          <input type="text" value="${escapeHtml(album.title)}" oninput="albumsData[${idx}].title = this.value" placeholder="Tytuł albumu">
+          <input type="text" value="${escapeHtml(album.title)}" oninput="albumsData[${idx}].title = this.value">
           <div style="display:flex; gap:3px;">
             ${idx > 0 ? `<button class="gen-btn-sm" onclick="moveAlbum(${idx}, -1)">▲</button>` : ''}
             ${idx < albumsData.length - 1 ? `<button class="gen-btn-sm" onclick="moveAlbum(${idx}, 1)">▼</button>` : ''}
           </div>
-          <button class="gen-btn-sm gen-btn-danger" onclick="removeAlbum(${idx})">Usuń album</button>
+          <button class="gen-btn-sm gen-btn-danger" onclick="removeAlbum(${idx})">Usuń</button>
         `;
         container.appendChild(row);
       });
@@ -1278,7 +1282,7 @@
     }
 
     function removeAlbum(idx) {
-      if (confirm("Czy na pewno chcesz usunąć ten album?")) {
+      if (confirm("Usunąć album?")) {
         albumsData.splice(idx, 1);
         refreshAlbumsOrderList();
         refreshExistingSelect();
@@ -1287,8 +1291,6 @@
 
     function generateOutput() {
       const out = document.getElementById('gen-output');
-
-      // Jeśli użytkownik jest w zakładce "Nowy album" i coś wpisał, dopisz go
       const title = document.getElementById('gen-title').value.trim();
       const slug = document.getElementById('gen-slug').value.trim();
       const year = document.getElementById('gen-year').value.trim();
@@ -1304,7 +1306,6 @@
           ...(normalizeAuthorsString(f.author) ? { author: normalizeAuthorsString(f.author) } : {})
         }));
         albumsData.push(newAlbum);
-        // Wyczyść formularz nowego
         document.getElementById('gen-title').value = '';
         document.getElementById('gen-slug').value = '';
         document.getElementById('gen-year').value = '';
@@ -1314,7 +1315,6 @@
         renderGenFiles();
       }
 
-      // Zaktualizuj istniejący album o zmiany z panelu edycji
       const select = document.getElementById('gen-existing-select');
       const idx = parseInt(select.value, 10);
       if (!isNaN(idx) && albumsData[idx]) {
@@ -1331,7 +1331,6 @@
           });
         }
 
-        // Dodaj nowe pliki jeśli wybrano
         if (genFilesExisting.length > 0) {
           genFilesExisting.forEach(f => {
             album.tracks.push({
@@ -1354,7 +1353,7 @@
       if (!out.value.trim()) return;
       try {
         await navigator.clipboard.writeText(out.value);
-        showToast('✅ Skopiowano cały JSON do schowka!');
+        showToast('✅ Skopiowano do schowka!');
       } catch (err) {
         out.select();
         document.execCommand('copy');
