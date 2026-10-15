@@ -52,23 +52,21 @@
 
     .section-title { font-size: 24px; margin-bottom: 25px; text-transform: uppercase; text-align: center; }
 
-    /* ===== KAFELEK ALBUMU (widok listy) ===== */
+    /* ============ KAFELKI ALBUMÓW ============ */
     .album {
       border: 1px solid #333333;
       background-color: #050505;
       padding: 20px;
       margin-bottom: 30px;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      transition: background 0.15s, border-color 0.15s;
     }
-    .album-header {
-      display: flex;
-      gap: 20px;
-      align-items: flex-start;
-      cursor: pointer;
-      user-select: none;
-    }
+    .album:hover { background: #0f0f0f; border-color: #555; }
+    .album-header { display: flex; gap: 20px; align-items: flex-start; }
     .album-cover {
-      width: 150px;
-      height: 150px;
+      width: 150px; height: 150px;
       background-color: #111111;
       object-fit: cover;
       border: 1px solid #333333;
@@ -78,36 +76,57 @@
     .album-info h3 { font-size: 20px; margin-bottom: 5px; }
     .album-info p { color: #aaaaaa; font-size: 14px; }
     .album-authors {
-      margin-top: 8px;
-      font-size: 13px;
-      color: #cccccc;
-      font-style: italic;
-      word-break: break-word;
+      margin-top: 8px; font-size: 13px; color: #cccccc;
+      font-style: italic; word-break: break-word;
     }
     .album-authors .label { color: #888; font-style: normal; }
-    .album-toggle-hint {
-      font-size: 12px;
-      color: #666;
-      margin-top: 10px;
-      user-select: none;
-    }
-    .album:hover .album-toggle-hint { color: #aaa; }
+    .album-hint { font-size: 12px; color: #666; margin-top: 10px; }
+    .album:hover .album-hint { color: #aaa; }
 
-    /* Tracklista domyślnie ukryta, pokazuje się po kliknięciu albumu */
-    .tracklist {
-      list-style: none;
-      border-top: 1px solid #222222;
-      margin-top: 20px;
-      display: none;
-    }
-    .album.expanded .tracklist { display: block; }
+    /* ============ WIDOK POJEDYNCZEGO ALBUMU ============ */
+    #single-album-view { display: none; width: 100%; }
+    #single-album-view.active { display: block; }
 
+    .back {
+      display: inline-block;
+      color: #fff;
+      text-decoration: none;
+      font-size: 15px;
+      margin-bottom: 25px;
+      letter-spacing: 1px;
+      border: 1px solid #333;
+      padding: 8px 14px;
+      cursor: pointer;
+      background: transparent;
+      font-family: inherit;
+    }
+    .back:hover { background: #111; border-color: #666; }
+
+    .single-album-header {
+      display: flex; gap: 20px; align-items: flex-start;
+      margin-bottom: 25px;
+    }
+    .single-album-cover {
+      width: 150px; height: 150px;
+      background-color: #111;
+      object-fit: cover;
+      border: 1px solid #333;
+      flex-shrink: 0;
+    }
+    .single-album-info h1 {
+      font-size: 24px; margin-bottom: 5px; letter-spacing: 1px;
+    }
+    .single-album-info p { color: #aaaaaa; font-size: 14px; }
+    .single-album-info .album-authors { margin-top: 8px; }
+
+    /* ============ TRACKLISTA ============ */
+    .tracklist { list-style: none; border-top: 1px solid #222; }
     .track {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 8px;
-      border-bottom: 1px solid #111111;
+      padding: 12px 8px;
+      border-bottom: 1px solid #111;
       gap: 10px;
       cursor: pointer;
       transition: background 0.15s;
@@ -119,21 +138,16 @@
     .track-text { flex: 1; min-width: 0; }
     .track-title { font-size: 15px; display: block; }
     .track-author {
-      font-size: 12px;
-      color: #888;
-      font-style: italic;
-      display: block;
-      margin-top: 2px;
+      font-size: 12px; color: #888; font-style: italic;
+      display: block; margin-top: 2px;
     }
-
     .track-duration {
-      font-size: 13px;
-      color: #888;
-      font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
+      font-size: 13px; color: #888;
+      font-variant-numeric: tabular-nums; flex-shrink: 0;
     }
 
     #opis p { font-size: 18px; color: #ffffff; text-align: center; }
+    .error-msg { text-align: center; color: #f66; padding: 40px 0; }
 
     /* ==================== PLAYER ==================== */
     #player {
@@ -149,126 +163,72 @@
       font-family: Times New Roman, Times, serif;
       box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
     }
-
     #player.hidden { display: none; }
 
     .player-left {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 0 0 auto;
-      width: 220px;
-      overflow: hidden;
+      display: flex; align-items: center; gap: 10px;
+      flex: 0 0 auto; width: 220px; overflow: hidden;
     }
     .player-left img {
-      width: 50px;
-      height: 50px;
-      object-fit: cover;
-      background: #111;
-      border: 1px solid #333;
-      flex-shrink: 0;
+      width: 50px; height: 50px; object-fit: cover;
+      background: #111; border: 1px solid #333; flex-shrink: 0;
     }
     .player-info { overflow: hidden; flex: 1; }
     .player-info .t {
-      font-size: 14px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      color: #fff;
+      font-size: 14px; white-space: nowrap; overflow: hidden;
+      text-overflow: ellipsis; color: #fff;
     }
     .player-info .a {
-      font-size: 12px;
-      color: #888;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      font-size: 12px; color: #888; white-space: nowrap;
+      overflow: hidden; text-overflow: ellipsis;
     }
 
     .player-center {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 6px;
-      min-width: 0;
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; gap: 6px; min-width: 0;
     }
-
-    .player-controls {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
+    .player-controls { display: flex; align-items: center; gap: 15px; }
 
     .player-btn {
-      background: transparent;
-      border: none;
-      color: #fff;
-      cursor: pointer;
-      padding: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: transparent; border: none; color: #fff;
+      cursor: pointer; padding: 4px; display: flex;
+      align-items: center; justify-content: center;
       transition: color 0.15s, transform 0.1s;
     }
     .player-btn:hover { color: #1db954; }
     .player-btn:active { transform: scale(0.9); }
     .player-btn:disabled { color: #444; cursor: default; }
     .player-btn svg { width: 22px; height: 22px; fill: currentColor; }
-
     .player-btn.play-pause svg { width: 32px; height: 32px; }
 
     .player-progress {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      width: 100%;
-      max-width: 500px;
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; max-width: 500px;
     }
     .player-progress .time {
-      font-size: 11px;
-      color: #888;
+      font-size: 11px; color: #888;
       font-variant-numeric: tabular-nums;
-      flex-shrink: 0;
-      min-width: 35px;
-      text-align: center;
+      flex-shrink: 0; min-width: 35px; text-align: center;
     }
-
     .seek-bar {
-      flex: 1;
-      height: 18px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      cursor: pointer;
+      flex: 1; height: 18px; display: flex;
+      align-items: center; position: relative; cursor: pointer;
     }
     .seek-track {
-      width: 100%;
-      height: 4px;
-      background: #333;
-      position: relative;
-      border-radius: 2px;
+      width: 100%; height: 4px; background: #333;
+      position: relative; border-radius: 2px;
       transition: background 0.15s;
     }
     .seek-bar:hover .seek-track { background: #555; }
-
     .seek-fill {
-      position: absolute;
-      top: 0; left: 0;
-      height: 100%;
-      background: #fff;
-      border-radius: 2px;
-      width: 0%;
-      pointer-events: none;
+      position: absolute; top: 0; left: 0;
+      height: 100%; background: #fff; border-radius: 2px;
+      width: 0%; pointer-events: none;
     }
     .seek-bar:hover .seek-fill { background: #1db954; }
-
     .seek-handle {
-      position: absolute;
-      top: 50%;
-      left: 0%;
-      width: 12px;
-      height: 12px;
-      background: #fff;
+      position: absolute; top: 50%; left: 0%;
+      width: 12px; height: 12px; background: #fff;
       border-radius: 50% !important;
       transform: translate(-50%, -50%) scale(0);
       transition: transform 0.15s;
@@ -278,51 +238,30 @@
     .seek-bar:hover .seek-handle { transform: translate(-50%, -50%) scale(1); }
 
     .player-right {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex: 0 0 auto;
-      width: 150px;
+      display: flex; align-items: center; gap: 6px;
+      flex: 0 0 auto; width: 150px;
     }
     .player-btn.vol-btn { padding: 2px; }
     .player-btn.vol-btn svg { width: 20px; height: 20px; }
-
     .volume-bar {
-      flex: 1;
-      height: 16px;
-      display: flex;
-      align-items: center;
-      position: relative;
-      cursor: pointer;
+      flex: 1; height: 16px; display: flex;
+      align-items: center; position: relative; cursor: pointer;
     }
     .volume-track {
-      width: 100%;
-      height: 4px;
-      background: #333;
-      position: relative;
-      border-radius: 2px;
+      width: 100%; height: 4px; background: #333;
+      position: relative; border-radius: 2px;
       transition: background 0.15s;
     }
     .volume-bar:hover .volume-track { background: #555; }
-
     .volume-fill {
-      position: absolute;
-      top: 0; left: 0;
-      height: 100%;
-      background: #fff;
-      border-radius: 2px;
-      width: 100%;
-      pointer-events: none;
+      position: absolute; top: 0; left: 0;
+      height: 100%; background: #fff; border-radius: 2px;
+      width: 100%; pointer-events: none;
     }
     .volume-bar:hover .volume-fill { background: #1db954; }
-
     .volume-handle {
-      position: absolute;
-      top: 50%;
-      left: 100%;
-      width: 12px;
-      height: 12px;
-      background: #fff;
+      position: absolute; top: 50%; left: 100%;
+      width: 12px; height: 12px; background: #fff;
       border-radius: 50% !important;
       transform: translate(-50%, -50%) scale(0);
       transition: transform 0.15s;
@@ -345,13 +284,15 @@
       .player-progress .time { display: none; }
       .player-progress { max-width: 100%; }
       .player-right { display: none; }
+
+      .album-header, .single-album-header { gap: 15px; }
+      .album-cover, .single-album-cover { width: 110px; height: 110px; }
     }
 
     /* ==================== GENERATOR ==================== */
     #generator-modal {
       display: none;
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0,0,0,0.9);
       justify-content: center;
@@ -366,8 +307,7 @@
     .gen-box {
       background: #0a0a0a;
       border: 1px solid #444;
-      width: 100%;
-      max-width: 820px;
+      width: 100%; max-width: 820px;
       padding: 25px;
     }
     .gen-box h2 { font-size: 18px; margin-bottom: 5px; color: #fff; font-family: inherit; }
@@ -386,12 +326,9 @@
 
     .gen-tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 20px; }
     .gen-tab {
-      background: transparent;
-      border: none;
-      color: #888;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-family: inherit;
+      background: transparent; border: none;
+      color: #888; padding: 10px 20px;
+      cursor: pointer; font-family: inherit;
       font-size: 14px;
       border-bottom: 2px solid transparent;
       margin-bottom: -1px;
@@ -402,40 +339,28 @@
     .gen-panel.active { display: block; }
 
     .gen-box label {
-      display: block;
-      font-size: 12px;
-      color: #aaa;
-      margin-bottom: 5px;
-      margin-top: 15px;
+      display: block; font-size: 12px; color: #aaa;
+      margin-bottom: 5px; margin-top: 15px;
     }
     .gen-box input[type="text"],
     .gen-box select {
-      width: 100%;
-      padding: 8px 10px;
-      background: #000;
-      color: #fff;
+      width: 100%; padding: 8px 10px;
+      background: #000; color: #fff;
       border: 1px solid #444;
-      font-family: inherit;
-      font-size: 13px;
+      font-family: inherit; font-size: 13px;
     }
     .gen-box input[type="file"] {
-      width: 100%;
-      padding: 8px;
-      background: #000;
-      color: #fff;
+      width: 100%; padding: 8px;
+      background: #000; color: #fff;
       border: 1px dashed #666;
-      font-family: inherit;
-      font-size: 13px;
+      font-family: inherit; font-size: 13px;
       cursor: pointer;
     }
     .gen-box input[type="file"]::file-selector-button {
-      background: #222;
-      color: #fff;
+      background: #222; color: #fff;
       border: 1px solid #555;
-      padding: 5px 12px;
-      margin-right: 10px;
-      cursor: pointer;
-      font-family: inherit;
+      padding: 5px 12px; margin-right: 10px;
+      cursor: pointer; font-family: inherit;
     }
 
     .gen-file-list {
@@ -447,148 +372,114 @@
     .gen-file-row {
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) auto;
-      gap: 8px;
-      align-items: center;
+      gap: 8px; align-items: center;
       padding: 8px;
       border-bottom: 1px solid #1a1a1a;
     }
     .gen-file-row:last-child { border-bottom: none; }
     .gen-file-row .filename {
-      font-size: 11px;
-      color: #888;
+      font-size: 11px; color: #888;
       word-break: break-all;
       font-family: Consolas, monospace;
     }
     .gen-file-row input {
       padding: 5px 8px;
-      background: #000;
-      color: #fff;
+      background: #000; color: #fff;
       border: 1px solid #444;
-      font-family: inherit;
-      font-size: 13px;
-      width: 100%;
-      min-width: 0;
+      font-family: inherit; font-size: 13px;
+      width: 100%; min-width: 0;
     }
     .gen-file-row .remove {
-      background: #300;
-      color: #fff;
-      border: none;
-      padding: 5px 10px;
-      cursor: pointer;
-      font-size: 12px;
+      background: #300; color: #fff;
+      border: none; padding: 5px 10px;
+      cursor: pointer; font-size: 12px;
       flex-shrink: 0;
     }
     .gen-file-row .remove:hover { background: #600; }
 
     .gen-empty { padding: 20px; text-align: center; color: #555; font-size: 12px; }
 
-    /* Sekcja edycji istniejących utworów */
     .gen-existing-editor {
       margin-top: 20px;
       border: 1px solid #333;
       padding: 12px;
     }
     .gen-existing-editor h3 {
-      font-size: 13px;
-      color: #fff;
+      font-size: 13px; color: #fff;
       margin-bottom: 10px;
-      font-family: inherit;
-      font-weight: normal;
+      font-family: inherit; font-weight: normal;
     }
     .gen-existing-editor .hint {
-      font-size: 11px;
-      color: #888;
-      margin-bottom: 10px;
+      font-size: 11px; color: #888; margin-bottom: 10px;
     }
     .gen-existing-track {
       display: grid;
       grid-template-columns: 25px minmax(0, 2fr) minmax(0, 1fr);
-      gap: 8px;
-      align-items: center;
+      gap: 8px; align-items: center;
       padding: 6px 0;
       border-bottom: 1px solid #1a1a1a;
     }
     .gen-existing-track:last-child { border-bottom: none; }
     .gen-existing-track .tnum {
-      font-size: 11px;
-      color: #666;
-      text-align: right;
+      font-size: 11px; color: #666; text-align: right;
     }
-    .gen-existing-track .tinfo {
-      min-width: 0;
-    }
+    .gen-existing-track .tinfo { min-width: 0; }
     .gen-existing-track .ttitle {
-      font-size: 12px;
-      color: #ddd;
-      word-break: break-word;
-      margin-bottom: 4px;
+      font-size: 12px; color: #ddd;
+      word-break: break-word; margin-bottom: 4px;
     }
     .gen-existing-track .tsrc {
-      font-size: 10px;
-      color: #555;
-      word-break: break-all;
+      font-size: 10px; color: #555; word-break: break-all;
     }
     .gen-existing-track input {
       padding: 5px 8px;
-      background: #000;
-      color: #fff;
+      background: #000; color: #fff;
       border: 1px solid #444;
-      font-family: inherit;
-      font-size: 12px;
-      min-width: 0;
-      width: 100%;
+      font-family: inherit; font-size: 12px;
+      min-width: 0; width: 100%;
     }
 
     .gen-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 20px;
-      padding-top: 20px;
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 20px; padding-top: 20px;
       border-top: 1px solid #333;
     }
     .gen-actions button {
       padding: 10px 18px;
-      font-family: inherit;
-      font-size: 13px;
+      font-family: inherit; font-size: 13px;
       cursor: pointer;
       border: 1px solid #555;
-      background: #111;
-      color: #fff;
+      background: #111; color: #fff;
     }
-    .gen-actions button.primary { background: #fff; color: #000; border-color: #fff; font-weight: bold; }
+    .gen-actions button.primary {
+      background: #fff; color: #000;
+      border-color: #fff; font-weight: bold;
+    }
     .gen-actions button.primary:hover { background: #ddd; }
     .gen-actions button:hover { background: #222; }
     .gen-actions button.primary:hover { background: #ddd; }
 
     .gen-output { margin-top: 20px; }
     .gen-output textarea {
-      width: 100%;
-      min-height: 300px;
+      width: 100%; min-height: 300px;
       padding: 12px;
-      background: #000;
-      color: #6f6;
+      background: #000; color: #6f6;
       border: 1px solid #444;
       font-family: Consolas, Monaco, monospace;
-      font-size: 12px;
-      line-height: 1.5;
-      resize: vertical;
-      white-space: pre;
+      font-size: 12px; line-height: 1.5;
+      resize: vertical; white-space: pre;
       overflow-x: auto;
     }
 
     .gen-toast {
       position: fixed;
-      bottom: 90px;
-      left: 50%;
+      bottom: 90px; left: 50%;
       transform: translateX(-50%);
-      background: #0a0;
-      color: #fff;
+      background: #0a0; color: #fff;
       padding: 10px 20px;
       font-family: Consolas, monospace;
       font-size: 13px;
-      opacity: 0;
-      transition: opacity 0.3s;
+      opacity: 0; transition: opacity 0.3s;
       pointer-events: none;
       z-index: 10000;
     }
@@ -598,24 +489,21 @@
       background: #1a1a00;
       border: 1px solid #666600;
       padding: 10px;
-      font-size: 11px;
-      color: #ffd700;
-      margin-top: 15px;
-      line-height: 1.5;
+      font-size: 11px; color: #ffd700;
+      margin-top: 15px; line-height: 1.5;
     }
 
     .mode-toggle { display: flex; gap: 5px; margin-bottom: 10px; width: 100%; }
     .mode-toggle button {
-      flex: 1;
-      padding: 8px;
-      background: #111;
-      color: #888;
+      flex: 1; padding: 8px;
+      background: #111; color: #888;
       border: 1px solid #444;
-      cursor: pointer;
-      font-family: inherit;
+      cursor: pointer; font-family: inherit;
       font-size: 12px;
     }
-    .mode-toggle button.active { background: #fff; color: #000; border-color: #fff; }
+    .mode-toggle button.active {
+      background: #fff; color: #000; border-color: #fff;
+    }
   </style>
 </head>
 <body>
@@ -647,6 +535,12 @@
     <section id="opis" class="content-section">
       <h2 class="section-title">Opis</h2>
       <p>jestesmy zjebami i chuj</p>
+    </section>
+
+    <!-- ===== WIDOK POJEDYNCZEGO ALBUMU ===== -->
+    <section id="single-album-view">
+      <button class="back" onclick="goBackToDiscography()">← Wróć do dyskografii</button>
+      <div id="single-album-content"></div>
     </section>
   </main>
 
@@ -716,6 +610,9 @@
         <label>Tytuł albumu</label>
         <input type="text" id="gen-title" placeholder="np. BAKTERIA MUSIC">
 
+        <label>Slug (URL albumu — tylko litery, cyfry, myślnik i podkreślnik)</label>
+        <input type="text" id="gen-slug" placeholder="np. Bakteria-music">
+
         <label>Rok wydania</label>
         <input type="text" id="gen-year" placeholder="np. 2026">
 
@@ -745,7 +642,7 @@
       </div>
 
       <div class="gen-info">
-        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Autor jest zapisywany w polu <code>author</code>. Nazwa pliku w <code>src</code> pozostaje taka jak na dysku.
+        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Autor jest opcjonalny — puste pole = brak klucza <code>author</code> w JSON. Slug albumu musi być unikalny i bez polskich znaków.
       </div>
 
       <div class="gen-actions">
@@ -773,12 +670,94 @@
     let genFiles = [];
     let genTab = 'new';
     let genMode = 'full';
-
-    // Edycja autorów istniejących utworów
     let existingAuthors = {};
 
     let playlist = [];
     let currentIndex = -1;
+
+    // ===================== HELPERY =====================
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function uniqueAuthors(tracks) {
+      const seen = new Map();
+      tracks.forEach(t => {
+        if (t.author && t.author.trim()) {
+          const orig = t.author.trim();
+          const key = orig.toLowerCase();
+          if (!seen.has(key)) seen.set(key, orig);
+        }
+      });
+      return Array.from(seen.values());
+    }
+
+    function formatTime(sec) {
+      if (!sec || isNaN(sec) || !isFinite(sec)) return '0:00';
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return m + ':' + (s < 10 ? '0' : '') + s;
+    }
+
+    // ===================== ROUTING =====================
+
+    function getSlugFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      return (params.get('album') || '').trim();
+    }
+
+    function pushAlbumURL(slug) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('album', slug);
+      history.pushState({ slug }, '', url);
+    }
+
+    function clearAlbumURL() {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('album');
+      history.pushState({}, '', url);
+    }
+
+    window.addEventListener('popstate', () => {
+      const slug = getSlugFromURL();
+      if (slug) renderSingleAlbum(slug, false);
+      else renderDiscographyView(false);
+    });
+
+    // ===================== WIDOKI =====================
+
+    function hideAllSections() {
+      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+    }
+
+    function showSection(id) {
+      // klik w "DYSKOGRAFIA" / "OPIS" — chowamy widok pojedynczego albumu
+      document.getElementById('single-album-view').classList.remove('active');
+      hideAllSections();
+      const s = document.getElementById(id);
+      if (s) s.classList.add('active');
+    }
+
+    function renderDiscographyView(push = true) {
+      document.getElementById('single-album-view').classList.remove('active');
+      hideAllSections();
+      document.getElementById('dyskografia').classList.add('active');
+      if (push) clearAlbumURL();
+    }
+
+    function openAlbum(slug) {
+      pushAlbumURL(slug);
+      renderSingleAlbum(slug, false);
+    }
+
+    function goBackToDiscography() {
+      history.back();
+    }
 
     // ===================== ŁADOWANIE ALBUMÓW =====================
 
@@ -794,80 +773,103 @@
           return;
         }
 
-        playlist = [];
-        albumsData.forEach(album => {
-          album.tracks.forEach(track => {
-            playlist.push({
-              title: track.title,
-              author: track.author || '',
-              src: track.src,
-              cover: album.cover,
-              album: album.title,
-            });
-          });
-        });
-
         let html = '';
-        let globalIdx = 0;
-        albumsData.forEach((album, albumIdx) => {
-          // Zbierz unikalnych autorów z albumu (pomijając puste)
-          const authorsSet = new Set();
-          album.tracks.forEach(t => {
-            if (t.author && t.author.trim()) authorsSet.add(t.author.trim());
-          });
-          const authorsList = Array.from(authorsSet).join(', ');
-
-          let tracksHtml = '';
-          album.tracks.forEach(track => {
-            const idx = globalIdx++;
-            tracksHtml += `
-              <li class="track" data-idx="${idx}" onclick="playTrack(event, ${idx})">
-                <div class="track-text">
-                  <span class="track-title">${escapeHtml(track.title)}</span>
-                  ${track.author ? `<span class="track-author">${escapeHtml(track.author)}</span>` : ''}
-                </div>
-                <span class="track-duration" data-src="${encodeURI(track.src)}">--:--</span>
-              </li>
-            `;
-          });
-
+        albumsData.forEach(album => {
+          const authors = uniqueAuthors(album.tracks).join(', ');
+          const slug = (album.slug || '').trim();
           html += `
-            <div class="album" data-album="${albumIdx}">
-              <div class="album-header" onclick="toggleAlbum(${albumIdx})">
+            <div class="album" onclick="openAlbum('${escapeHtml(slug).replace(/'/g, "\\'")}')">
+              <div class="album-header">
                 <img src="${encodeURI(album.cover)}" alt="Okładka" class="album-cover">
                 <div class="album-info">
                   <h3>${escapeHtml(album.title)}</h3>
                   <p>Rok wydania: ${escapeHtml(album.year)}</p>
-                  ${authorsList ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authorsList)}</div>` : ''}
-                  <div class="album-toggle-hint">▶ Kliknij, aby pokazać utwory</div>
+                  ${authors ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors)}</div>` : ''}
+                  <div class="album-hint">→ Kliknij, aby zobaczyć utwory</div>
                 </div>
               </div>
-              <ul class="tracklist">${tracksHtml}</ul>
             </div>
           `;
         });
-
         container.innerHTML = html;
-        loadDurations();
+
+        // Sprawdź, czy startujemy od razu na widoku albumu
+        const startSlug = getSlugFromURL();
+        if (startSlug) {
+          renderSingleAlbum(startSlug, false);
+        } else {
+          hideAllSections();
+          document.getElementById('dyskografia').classList.add('active');
+        }
       } catch (err) {
         container.innerHTML = '<p style="text-align:center; color:#f66;">Błąd ładowania albumów: ' + escapeHtml(err.message) + '</p>';
       }
     }
 
-    function toggleAlbum(albumIdx) {
-      const el = document.querySelector(`.album[data-album="${albumIdx}"]`);
-      if (!el) return;
-      el.classList.toggle('expanded');
-      const hint = el.querySelector('.album-toggle-hint');
-      if (hint) {
-        hint.textContent = el.classList.contains('expanded')
-          ? '▼ Kliknij, aby ukryć utwory'
-          : '▶ Kliknij, aby pokazać utwory';
+    // ===================== WIDOK POJEDYNCZEGO ALBUMU =====================
+
+    function renderSingleAlbum(slug, push = true) {
+      const view = document.getElementById('single-album-view');
+      const content = document.getElementById('single-album-content');
+
+      const album = albumsData.find(a => (a.slug || '').toLowerCase() === slug.toLowerCase());
+
+      if (!album) {
+        hideAllSections();
+        view.classList.add('active');
+        content.innerHTML = '<div class="error-msg">Nie znaleziono albumu o nazwie: ' + escapeHtml(slug) + '</div>';
+        return;
       }
+
+      // Zbuduj playlist
+      playlist = album.tracks.map(t => ({
+        title: t.title,
+        author: t.author || '',
+        src: t.src,
+        cover: album.cover,
+        album: album.title,
+      }));
+      currentIndex = -1;
+
+      const authors = uniqueAuthors(album.tracks).join(', ');
+
+      let tracksHtml = '';
+      album.tracks.forEach((track, idx) => {
+        tracksHtml += `
+          <li class="track" data-idx="${idx}" onclick="playTrack(${idx})">
+            <div class="track-text">
+              <span class="track-title">${escapeHtml(track.title)}</span>
+              ${track.author ? `<span class="track-author">${escapeHtml(track.author)}</span>` : ''}
+            </div>
+            <span class="track-duration" data-src="${encodeURI(track.src)}">--:--</span>
+          </li>
+        `;
+      });
+
+      content.innerHTML = `
+        <div class="single-album-header">
+          <img src="${encodeURI(album.cover)}" alt="Okładka" class="single-album-cover">
+          <div class="single-album-info">
+            <h1>${escapeHtml(album.title)}</h1>
+            <p>Rok wydania: ${escapeHtml(album.year)}</p>
+            ${authors ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors)}</div>` : ''}
+          </div>
+        </div>
+        <ul class="tracklist">${tracksHtml}</ul>
+      `;
+
+      // Ukryj sekcje główne, pokaż widok albumu
+      hideAllSections();
+      view.classList.add('active');
+
+      loadDurations();
+      document.title = album.title + ' — ICH SZEŚĆU';
+
+      if (push) pushAlbumURL(slug);
     }
 
     function loadDurations() {
-      document.querySelectorAll('.track-duration').forEach(el => {
+      document.querySelectorAll('#single-album-view .track-duration').forEach(el => {
         const src = el.getAttribute('data-src');
         const tmp = document.createElement('audio');
         tmp.preload = 'metadata';
@@ -875,28 +877,8 @@
         tmp.addEventListener('loadedmetadata', () => {
           el.textContent = formatTime(tmp.duration);
         });
-        tmp.addEventListener('error', () => {
-          el.textContent = '';
-        });
+        tmp.addEventListener('error', () => { el.textContent = ''; });
       });
-    }
-
-    function escapeHtml(str) {
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    }
-
-    function hideAllSections() {
-      document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-    }
-
-    function showSection(id) {
-      hideAllSections();
-      const s = document.getElementById(id);
-      if (s) s.classList.add('active');
     }
 
     // ===================== PLAYER =====================
@@ -922,8 +904,7 @@
     const plVolFill = document.getElementById('pl-volume-fill');
     const plVolHandle = document.getElementById('pl-volume-handle');
 
-    function playTrack(event, index) {
-      if (event) event.stopPropagation();
+    function playTrack(index) {
       if (index < 0 || index >= playlist.length) return;
       currentIndex = index;
       const item = playlist[index];
@@ -953,7 +934,7 @@
 
     plPlay.addEventListener('click', () => {
       if (currentIndex === -1) {
-        if (playlist.length) playTrack(null, 0);
+        if (playlist.length) playTrack(0);
         return;
       }
       if (audio.paused) audio.play();
@@ -961,20 +942,20 @@
     });
 
     plPrev.addEventListener('click', () => {
-      if (currentIndex > 0) playTrack(null, currentIndex - 1);
-      else if (playlist.length) playTrack(null, playlist.length - 1);
+      if (currentIndex > 0) playTrack(currentIndex - 1);
+      else if (playlist.length) playTrack(playlist.length - 1);
     });
 
     plNext.addEventListener('click', () => {
-      if (currentIndex < playlist.length - 1) playTrack(null, currentIndex + 1);
-      else playTrack(null, 0);
+      if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1);
+      else playTrack(0);
     });
 
     audio.addEventListener('play', () => updatePlayIcon(true));
     audio.addEventListener('pause', () => updatePlayIcon(false));
 
     audio.addEventListener('ended', () => {
-      if (currentIndex < playlist.length - 1) playTrack(null, currentIndex + 1);
+      if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1);
       else updatePlayIcon(false);
     });
 
@@ -1064,13 +1045,6 @@
     document.addEventListener('contextmenu', (e) => {
       if (e.target.closest('.track')) e.preventDefault();
     });
-
-    function formatTime(sec) {
-      if (!sec || isNaN(sec) || !isFinite(sec)) return '0:00';
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
-      return m + ':' + (s < 10 ? '0' : '') + s;
-    }
 
     document.addEventListener('keydown', (e) => {
       if (e.target.matches('input, textarea, select')) return;
@@ -1225,12 +1199,10 @@
         const row = document.createElement('div');
         row.className = 'gen-file-row';
 
-        // 1. Nazwa pliku
         const fn = document.createElement('span');
         fn.className = 'filename';
         fn.textContent = item.file.name;
 
-        // 2. Tytuł
         const titleInput = document.createElement('input');
         titleInput.type = 'text';
         titleInput.placeholder = 'Tytuł';
@@ -1239,7 +1211,6 @@
           genFiles[index].title = titleInput.value;
         });
 
-        // 3. Autor
         const authorInput = document.createElement('input');
         authorInput.type = 'text';
         authorInput.placeholder = 'Autor (opcjonalnie)';
@@ -1248,7 +1219,6 @@
           genFiles[index].author = authorInput.value;
         });
 
-        // 4. Usuń
         const btn = document.createElement('button');
         btn.className = 'remove';
         btn.textContent = '✕';
@@ -1288,11 +1258,21 @@
 
       if (genTab === 'new') {
         const title = document.getElementById('gen-title').value.trim();
+        const slug = document.getElementById('gen-slug').value.trim();
         const year = document.getElementById('gen-year').value.trim();
         const cover = document.getElementById('gen-cover').value.trim();
 
-        if (!title || !year || !cover) {
-          out.value = '⚠️ Uzupełnij tytuł albumu, rok i nazwę okładki.';
+        if (!title || !slug || !year || !cover) {
+          out.value = '⚠️ Uzupełnij tytuł, slug, rok i nazwę okładki.';
+          return;
+        }
+        if (!/^[A-Za-z0-9_-]+$/.test(slug)) {
+          out.value = '⚠️ Slug może zawierać tylko litery (bez polskich znaków), cyfry, myślnik i podkreślnik.';
+          return;
+        }
+        const slugTaken = albumsData.some(a => (a.slug || '').toLowerCase() === slug.toLowerCase());
+        if (slugTaken) {
+          out.value = '⚠️ Album o tym slug już istnieje w albums.json.';
           return;
         }
         if (!genFiles.length) {
@@ -1302,6 +1282,7 @@
 
         const newAlbum = {
           title,
+          slug,
           year,
           cover,
           tracks: genFiles.map(f => makeTrack(f.file, f.author, f.title)),
@@ -1377,20 +1358,10 @@
       setTimeout(() => toast.classList.remove('show'), 1800);
     }
 
+    // ===================== START =====================
+
     window.addEventListener('DOMContentLoaded', () => {
       loadAlbums();
-      hideAllSections();
-      showSection('dyskografia');
-
-      document.getElementById('gen-files').addEventListener('change', (e) => {
-        handleGenFiles(e.target.files);
-        e.target.value = '';
-      });
-
-      document.getElementById('gen-files-existing').addEventListener('change', (e) => {
-        handleGenFiles(e.target.files);
-        e.target.value = '';
-      });
     });
   </script>
 
