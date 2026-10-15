@@ -167,6 +167,22 @@
     #opis p { font-size: 18px; color: #ffffff; text-align: center; }
     .error-msg { text-align: center; color: #f66; padding: 40px 0; }
 
+    /* ============ NIEBEZPIECZNE PLIKI ============ */
+    .files-list { list-style: none; border-top: 1px solid #222; }
+    .file-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px 10px; border-bottom: 1px solid #111;
+    }
+    .file-item:hover { background: #0f0f0f; }
+    .file-info strong { font-size: 16px; color: #ff5555; display: block; margin-bottom: 3px; }
+    .file-info span { font-size: 12px; color: #888; }
+    .download-btn {
+      background: #220000; color: #ff5555; border: 1px solid #551111;
+      padding: 8px 16px; text-decoration: none; font-size: 13px; font-weight: bold;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .download-btn:hover { background: #550000; border-color: #ff5555; color: #fff; }
+
     /* ============ TOP 10 LISTA ============ */
     .top-list { list-style: none; border-top: 1px solid #222; }
     .top-item {
@@ -406,6 +422,7 @@
         <div class="menu-title">Menu wygląda następująco:</div>
         <ul class="menu-list">
           <li><a onclick="showSection('dyskografia')">DYSKOGRAFIA</a> - nasze albumy i utwory do odsłuchu</li>
+          <li><a onclick="showSection('niebezpieczne-pliki')">NIEBEZPIECZNE PLIKI</a> - pobierz pliki na własną odpowiedzialność</li>
           <li><a onclick="showSection('top-dislikes')">TOP 10 DISLIKE</a> - najbardziej nielubiane utwory</li>
           <li><a onclick="showSection('opis')">OPIS</a> - krótka informacja o zespole</li>
         </ul>
@@ -417,6 +434,19 @@
     <section id="dyskografia" class="content-section">
       <h2 class="section-title">Dyskografia</h2>
       <div id="albums-container"></div>
+    </section>
+
+    <section id="niebezpieczne-pliki" class="content-section">
+      <h2 class="section-title">Niebezpieczne Pliki</h2>
+      <ul class="files-list">
+        <li class="file-item">
+          <div class="file-info">
+            <strong>gowno.exe</strong>
+            <span>Bardzo podejrzany plik wykonywalny. Pobierasz na własną odpowiedzialność!</span>
+          </div>
+          <a href="gowno.exe" class="download-btn" download>POBIERZ</a>
+        </li>
+      </ul>
     </section>
 
     <section id="top-dislikes" class="content-section">
@@ -923,7 +953,6 @@
         const stats = trackStats[trackId] || { dislikes: 0, views: 0 };
         const isDisliked = localStorage.getItem(`disliked_${trackId}`) === 'true';
 
-        // Sprawdź czy ten utwór jest aktualnie odtwarzany
         const isCurrentPlaying = (currentPlayingAlbumSlug && currentPlayingAlbumSlug.toLowerCase() === slug.toLowerCase() && currentTrackIndex === idx);
 
         tracksHtml += `
@@ -1020,7 +1049,6 @@
       const authorStr = normalizeAuthorsString(track.author);
       plAlbum.textContent = authorStr ? (authorStr + ' • ' + album.title) : album.title;
 
-      // Zaktualizuj podświetlenie na liście jeśli jesteśmy w widoku tego albumu
       document.querySelectorAll('.track').forEach(t => t.classList.remove('playing'));
       const active = document.querySelector(`.track[data-idx="${index}"]`);
       if (active) active.classList.add('playing');
@@ -1052,7 +1080,6 @@
       if (currentTrackIndex > 0) {
         playAlbumTrack(album.slug, currentTrackIndex - 1);
       } else {
-        // Przejdź do poprzedniego albumu na sam koniec
         const prevAlbumIndex = (albumIndex - 1 + albumsData.length) % albumsData.length;
         const prevAlbum = albumsData[prevAlbumIndex];
         playAlbumTrack(prevAlbum.slug, prevAlbum.tracks.length - 1);
@@ -1072,7 +1099,6 @@
       if (currentTrackIndex < album.tracks.length - 1) {
         playAlbumTrack(album.slug, currentTrackIndex + 1);
       } else {
-        // Koniec albumu – przejdź płynnie do pierwszego utworu w NASTĘPNYM albumie!
         const nextAlbumIndex = (albumIndex + 1) % albumsData.length;
         const nextAlbum = albumsData[nextAlbumIndex];
         if (nextAlbum && nextAlbum.tracks.length > 0) {
@@ -1380,7 +1406,7 @@
         }
 
         if (genFilesExisting.length > 0) {
-          genFilesExisting.appendTracks = genFilesExisting.forEach(f => {
+          genFilesExisting.forEach(f => {
             album.tracks.push({
               title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
               src: 'Muzyka/' + f.file.name,
