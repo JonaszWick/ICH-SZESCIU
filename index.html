@@ -62,6 +62,7 @@
       color: inherit;
       display: block;
       transition: background 0.15s, border-color 0.15s;
+      cursor: pointer;
     }
     .album:hover { background: #0f0f0f; border-color: #555; }
     .album-header { display: flex; gap: 20px; align-items: flex-start; }
@@ -632,7 +633,7 @@
 
         <div class="gen-existing-editor" id="gen-existing-editor">
           <h3>✏️ Edytuj autorów istniejących utworów</h3>
-          <div class="hint">Pole autora zostaw puste, żeby utwór pozostał bez autora w JSON.</div>
+          <div class="hint">Pole autora obsługuje wielu autorów oddzielonych przecinkiem, np. <code>Tutel, Dwupak, JanuszWick</code></div>
           <div id="gen-existing-tracks"></div>
         </div>
       </div>
@@ -642,7 +643,7 @@
       </div>
 
       <div class="gen-info">
-        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Autor jest opcjonalny — puste pole = brak klucza <code>author</code> w JSON. Slug albumu musi być unikalny i bez polskich znaków.
+        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). W polu autora możesz wpisać kilku autorów oddzielonych przecinkiem — zostaną automatycznie oczyszczeni (bez duplikatów, bez zbędnych spacji).
       </div>
 
       <div class="gen-actions">
@@ -685,16 +686,40 @@
         .replace(/"/g, '&quot;');
     }
 
+    // Rozbija string autorów po przecinku, normalizuje, usuwa duplikaty (case-insensitive)
+    // Zwraca tablicę pojedynczych autorów w kolejności pierwszego wystąpienia.
+    function parseAuthorsList(authorStr) {
+      if (!authorStr) return [];
+      const parts = String(authorStr).split(',');
+      const seen = new Map();
+      parts.forEach(part => {
+        const orig = part
+          .normalize('NFKC')
+          .replace(/[\u200B-\u200D\uFEFF]/g, '')
+          .replace(/\s+/g, ' ')
+          .trim();
+        if (!orig) return;
+        const key = orig.toLowerCase();
+        if (!seen.has(key)) seen.set(key, orig);
+      });
+      return Array.from(seen.values());
+    }
+
+    // Zbiera unikalnych autorów z całego albumu (po wszystkich utworach)
     function uniqueAuthors(tracks) {
       const seen = new Map();
       tracks.forEach(t => {
-        if (t.author && t.author.trim()) {
-          const orig = t.author.trim();
-          const key = orig.toLowerCase();
-          if (!seen.has(key)) seen.set(key, orig);
-        }
+        parseAuthorsList(t.author).forEach(a => {
+          const key = a.toLowerCase();
+          if (!seen.has(key)) seen.set(key, a);
+        });
       });
       return Array.from(seen.values());
+    }
+
+    // Normalizuje string autorów do postaci "A, B, C" — bez duplikatów, bez zbędnych spacji
+    function normalizeAuthorsString(authorStr) {
+      return parseAuthorsList(authorStr).join(', ');
     }
 
     function formatTime(sec) {
@@ -736,17 +761,18 @@
     }
 
     function showSection(id) {
-      // klik w "DYSKOGRAFIA" / "OPIS" — chowamy widok pojedynczego albumu
       document.getElementById('single-album-view').classList.remove('active');
       hideAllSections();
       const s = document.getElementById(id);
       if (s) s.classList.add('active');
+      document.title = 'ICH SZEŚĆU';
     }
 
     function renderDiscographyView(push = true) {
       document.getElementById('single-album-view').classList.remove('active');
       hideAllSections();
       document.getElementById('dyskografia').classList.add('active');
+      document.title = 'ICH SZEŚĆU';
       if (push) clearAlbumURL();
     }
 
@@ -777,14 +803,15 @@
         albumsData.forEach(album => {
           const authors = uniqueAuthors(album.tracks).join(', ');
           const slug = (album.slug || '').trim();
+          const slugEscaped = slug.replace(/'/g, "\\'");
           html += `
-            <div class="album" onclick="openAlbum('${escapeHtml(slug).replace(/'/g, "\\'")}')">
+            <div class="album" onclick="openAlbum('${slugEscaped}')">
               <div class="album-header">
                 <img src="${encodeURI(album.cover)}" alt="Okładka" class="album-cover">
                 <div class="album-info">
                   <h3>${escapeHtml(album.title)}</h3>
                   <p>Rok wydania: ${escapeHtml(album.year)}</p>
-                  ${authors ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors)}</div>` : ''}
+                  ${authors.length ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors.join(', '))}</div>` : ''}
                   <div class="album-hint">→ Kliknij, aby zobaczyć utwory</div>
                 </div>
               </div>
@@ -793,7 +820,6 @@
         });
         container.innerHTML = html;
 
-        // Sprawdź, czy startujemy od razu na widoku albumu
         const startSlug = getSlugFromURL();
         if (startSlug) {
           renderSingleAlbum(startSlug, false);
@@ -821,25 +847,25 @@
         return;
       }
 
-      // Zbuduj playlist
       playlist = album.tracks.map(t => ({
         title: t.title,
-        author: t.author || '',
+        author: normalizeAuthorsString(t.author),
         src: t.src,
         cover: album.cover,
         album: album.title,
       }));
       currentIndex = -1;
 
-      const authors = uniqueAuthors(album.tracks).join(', ');
+      const authors = uniqueAuthors(album.tracks);
 
       let tracksHtml = '';
       album.tracks.forEach((track, idx) => {
+        const trackAuthor = normalizeAuthorsString(track.author);
         tracksHtml += `
           <li class="track" data-idx="${idx}" onclick="playTrack(${idx})">
             <div class="track-text">
               <span class="track-title">${escapeHtml(track.title)}</span>
-              ${track.author ? `<span class="track-author">${escapeHtml(track.author)}</span>` : ''}
+              ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
             <span class="track-duration" data-src="${encodeURI(track.src)}">--:--</span>
           </li>
@@ -852,13 +878,12 @@
           <div class="single-album-info">
             <h1>${escapeHtml(album.title)}</h1>
             <p>Rok wydania: ${escapeHtml(album.year)}</p>
-            ${authors ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors)}</div>` : ''}
+            ${authors.length ? `<div class="album-authors"><span class="label">Autorzy:</span> ${escapeHtml(authors.join(', '))}</div>` : ''}
           </div>
         </div>
         <ul class="tracklist">${tracksHtml}</ul>
       `;
 
-      // Ukryj sekcje główne, pokaż widok albumu
       hideAllSections();
       view.classList.add('active');
 
@@ -1162,7 +1187,7 @@
 
         const input = document.createElement('input');
         input.type = 'text';
-        input.placeholder = 'Autor (opcjonalnie)';
+        input.placeholder = 'Autorzy (oddziel przecinkiem)';
         input.value = authors[tIdx] || '';
         input.addEventListener('input', () => {
           existingAuthors[albumIdx][tIdx] = input.value;
@@ -1213,7 +1238,7 @@
 
         const authorInput = document.createElement('input');
         authorInput.type = 'text';
-        authorInput.placeholder = 'Autor (opcjonalnie)';
+        authorInput.placeholder = 'Autorzy (oddziel przecinkiem)';
         authorInput.value = item.author || '';
         authorInput.addEventListener('input', () => {
           genFiles[index].author = authorInput.value;
@@ -1248,7 +1273,7 @@
         title: title || file.name.replace(/\.[^/.]+$/, ''),
         src: 'Muzyka/' + file.name,
       };
-      const a = (author || '').trim();
+      const a = normalizeAuthorsString(author);
       if (a) t.author = a;
       return t;
     }
@@ -1306,9 +1331,10 @@
 
         const album = albumsData[index];
         const editedAuthors = existingAuthors[index] || album.tracks.map(t => t.author || '');
+
         const hasNewFiles = genFiles.length > 0;
         const hasAuthorChanges = album.tracks.some((t, i) =>
-          (editedAuthors[i] || '').trim() !== (t.author || '').trim()
+          normalizeAuthorsString(editedAuthors[i]) !== normalizeAuthorsString(t.author || '')
         );
 
         if (!hasNewFiles && !hasAuthorChanges) {
@@ -1318,7 +1344,7 @@
 
         const updatedTracks = album.tracks.map((t, i) => {
           const copy = { title: t.title, src: t.src };
-          const a = (editedAuthors[i] || '').trim();
+          const a = normalizeAuthorsString(editedAuthors[i]);
           if (a) copy.author = a;
           return copy;
         });
