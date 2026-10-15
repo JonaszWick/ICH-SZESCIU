@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICH SZEŚĆU</title>
-  <!-- Skrypt Supabase oraz Twój plik konfiguracyjny -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabaseClient.js"></script>
   
@@ -143,13 +142,15 @@
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     }
     .dislike-btn {
-      background: transparent; border: 1px solid #333; color: #aaa;
-      padding: 4px 8px; cursor: pointer; font-size: 13px;
-      font-family: inherit; transition: all 0.15s;
+      background: transparent; border: 1px solid #333; color: #777;
+      padding: 3px 8px; cursor: pointer; font-size: 12px; font-weight: bold;
+      font-family: monospace; transition: all 0.15s;
     }
-    .dislike-btn:hover { border-color: #f66; color: #f66; background: #200; }
+    .dislike-btn:hover { border-color: #fff; color: #fff; background: #111; }
+    .dislike-btn.active { border-color: #f66; color: #f66; background: #200; }
+
     .stats-info {
-      font-size: 11px; color: #778899; text-align: right; min-width: 60px;
+      font-size: 11px; color: #778899; text-align: right; min-width: 65px;
     }
 
     .track-duration {
@@ -168,7 +169,7 @@
     }
     .top-item:hover { background: #0f0f0f; }
 
-    /* ============ LATAJĄCE BAKTERIE ============ */
+    /* ============ LATAJĄCE OBRAZKI ===================== */
     #floating-layer {
       position: fixed; inset: 0; overflow: hidden;
       pointer-events: none; z-index: 1;
@@ -286,13 +287,105 @@
     }
     .volume-bar:hover .volume-handle { transform: translate(-50%, -50%) scale(1); }
 
+    /* ==================== GENERATOR STYLES ==================== */
+    #generator-modal {
+      display: none; position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0,0,0,0.92);
+      justify-content: center; align-items: flex-start;
+      padding: 20px 15px; overflow-y: auto; z-index: 9999;
+      font-family: Consolas, Monaco, monospace;
+    }
+    #generator-modal.open { display: flex; }
+
+    .gen-box {
+      background: #0a0a0a; border: 1px solid #444;
+      width: 100%; max-width: 860px; padding: 25px;
+    }
+    .gen-box h2 { font-size: 18px; margin-bottom: 5px; color: #fff; font-family: inherit; }
+    .gen-box .hint { font-size: 12px; color: #888; margin-bottom: 15px; }
+    .gen-close {
+      float: right; background: transparent; border: 1px solid #444; color: #fff;
+      padding: 5px 12px; cursor: pointer; font-family: inherit; font-size: 13px;
+    }
+    .gen-close:hover { background: #500; }
+
+    .gen-tabs { display: flex; border-bottom: 1px solid #333; margin-bottom: 20px; flex-wrap: wrap; gap: 5px; }
+    .gen-tab {
+      background: transparent; border: none; color: #888; padding: 8px 14px;
+      cursor: pointer; font-family: inherit; font-size: 13px;
+      border-bottom: 2px solid transparent; margin-bottom: -1px;
+    }
+    .gen-tab.active { color: #fff; border-bottom-color: #fff; background: #111; }
+
+    .gen-panel { display: none; }
+    .gen-panel.active { display: block; }
+
+    .gen-box label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; margin-top: 12px; }
+    .gen-box input[type="text"], .gen-box select {
+      width: 100%; padding: 8px 10px; background: #000; color: #fff;
+      border: 1px solid #444; font-family: inherit; font-size: 13px;
+    }
+    .gen-box input[type="file"] {
+      width: 100%; padding: 8px; background: #000; color: #fff;
+      border: 1px dashed #666; font-family: inherit; font-size: 13px; cursor: pointer;
+    }
+
+    .gen-file-list, .gen-albums-order-list {
+      margin-top: 15px; border: 1px solid #333; max-height: 280px; overflow-y: auto; background: #050505;
+    }
+    .gen-file-row, .gen-album-order-row {
+      display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr) minmax(0, 1.5fr) auto;
+      gap: 8px; align-items: center; padding: 8px; border-bottom: 1px solid #1a1a1a;
+    }
+    .gen-album-order-row {
+      grid-template-columns: 40px minmax(0, 1fr) auto auto;
+    }
+    .gen-file-row input, .gen-album-order-row input {
+      padding: 5px 8px; background: #000; color: #fff; border: 1px solid #444; font-family: inherit; font-size: 12px; width: 100%;
+    }
+    .gen-btn-sm {
+      background: #222; color: #fff; border: 1px solid #444; padding: 5px 10px; cursor: pointer; font-size: 11px;
+    }
+    .gen-btn-sm:hover { background: #444; }
+    .gen-btn-danger { background: #300; border-color: #500; }
+    .gen-btn-danger:hover { background: #600; }
+
+    .gen-empty { padding: 20px; text-align: center; color: #555; font-size: 12px; }
+
+    .gen-existing-editor { margin-top: 15px; border: 1px solid #333; padding: 12px; }
+    .gen-existing-track {
+      display: grid; grid-template-columns: 25px minmax(0, 2fr) minmax(0, 1fr) auto;
+      gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid #1a1a1a;
+    }
+    .gen-existing-track input {
+      padding: 5px 8px; background: #000; color: #fff; border: 1px solid #444; font-family: inherit; font-size: 12px; width: 100%;
+    }
+
+    .gen-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 15px; border-top: 1px solid #333; }
+    .gen-actions button {
+      padding: 9px 16px; font-family: inherit; font-size: 13px; cursor: pointer; border: 1px solid #555; background: #111; color: #fff;
+    }
+    .gen-actions button.primary { background: #fff; color: #000; border-color: #fff; font-weight: bold; }
+    .gen-actions button.primary:hover { background: #ddd; }
+    .gen-actions button:hover { background: #222; }
+
+    .gen-output textarea {
+      width: 100%; min-height: 220px; padding: 10px; background: #000; color: #6f6;
+      border: 1px solid #444; font-family: Consolas, monospace; font-size: 12px; line-height: 1.4; resize: vertical;
+    }
+    .gen-toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+      background: #0a0; color: #fff; padding: 10px 20px; font-family: Consolas, monospace;
+      font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 10000;
+    }
+    .gen-toast.show { opacity: 1; }
+
     @media (max-width: 700px) {
       .player-left { width: auto; min-width: 0; flex: 0 1 auto; max-width: 130px; }
       .player-left img { width: 160px; height: 160px; }
       .player-progress .time { display: none; }
       .player-right { display: none; }
       .album-cover { width: 110px; height: 110px; }
-      .single-album-meta h1 { font-size: 22px; }
     }
   </style>
 </head>
@@ -312,7 +405,7 @@
         <div class="menu-title">Menu wygląda następująco:</div>
         <ul class="menu-list">
           <li><a onclick="showSection('dyskografia')">DYSKOGRAFIA</a> - nasze albumy i utwory do odsłuchu</li>
-          <li><a onclick="showSection('top-dislikes')" onclick="loadTopDislikes()">TOP 10 DISLIKE</a> - najbardziej nielubiane utwory</li>
+          <li><a onclick="showSection('top-dislikes')">TOP 10 DISLIKE</a> - najbardziej nielubiane utwory</li>
           <li><a onclick="showSection('opis')">OPIS</a> - krótka informacja o zespole</li>
         </ul>
       </div>
@@ -326,7 +419,7 @@
     </section>
 
     <section id="top-dislikes" class="content-section">
-      <h2 class="section-title">TOP 10 Dislike 👎</h2>
+      <h2 class="section-title">TOP 10 Dislike</h2>
       <ul class="top-list" id="top-list-container">
         <li style="text-align:center; padding: 20px; color: #888;">Ładowanie rankingu...</li>
       </ul>
@@ -337,7 +430,6 @@
       <p>jestesmy zjebami i chuj</p>
     </section>
 
-    <!-- ===== WIDOK POJEDYNCZEGO ALBUMU ===== -->
     <section id="single-album-view">
       <button class="back" onclick="goBackToDiscography()">← Wróć do dyskografii</button>
       <div id="single-album-content"></div>
@@ -386,13 +478,97 @@
 
   <audio id="audio-el" preload="metadata"></audio>
 
+  <!-- ==================== SUPER GENERATOR MODAL ==================== -->
+  <div id="generator-modal">
+    <div class="gen-box">
+      <button class="gen-close" onclick="closeGenerator()">✕ Zamknij</button>
+      <h2>⚙️ Super Generator albums.json</h2>
+      <div class="hint">Wpisz 6969 na klawiaturze, żeby otworzyć/zamknąć. Twórz, edytuj i zmieniaj kolejność bez kodu!</div>
+
+      <div class="gen-tabs">
+        <button class="gen-tab active" onclick="switchTab('new')">➕ Nowy album</button>
+        <button class="gen-tab" onclick="switchTab('existing')">🎵 Dodaj / Edytuj utwory</button>
+        <button class="gen-tab" onclick="switchTab('order')">↕️ Kolejność albumów</button>
+      </div>
+
+      <!-- PANEL 1: NOWY ALBUM -->
+      <div class="gen-panel active" id="panel-new">
+        <label>Tytuł albumu</label>
+        <input type="text" id="gen-title" placeholder="np. NOWY ALBUM">
+
+        <label>Slug (URL — tylko litery, cyfry, myślnik)</label>
+        <input type="text" id="gen-slug" placeholder="np. Nowy-album">
+
+        <label>Rok wydania</label>
+        <input type="text" id="gen-year" placeholder="np. 2026">
+
+        <label>Nazwa pliku okładki (z GitHub)</label>
+        <input type="text" id="gen-cover" placeholder="np. okladka2.png">
+
+        <label>Obrazek do latania w tle (opcjonalnie)</label>
+        <input type="text" id="gen-bgimage" placeholder="np. bakteria.png">
+
+        <label>Wybierz pliki MP3 z komputera</label>
+        <input type="file" id="gen-files" accept="audio/*" multiple>
+
+        <div class="gen-file-list" id="gen-file-list">
+          <div class="gen-empty">Brak wybranych plików MP3</div>
+        </div>
+      </div>
+
+      <!-- PANEL 2: EDYCJA UTWORÓW -->
+      <div class="gen-panel" id="panel-existing">
+        <label>Wybierz album do edycji</label>
+        <select id="gen-existing-select"></select>
+
+        <label>Zmień okładkę albumu</label>
+        <input type="text" id="gen-existing-cover" placeholder="np. okladka1.png">
+
+        <label>Obrazek do latania w tle</label>
+        <input type="text" id="gen-existing-bgimage" placeholder="np. baktierrrra.png">
+
+        <label>Dodaj nowe pliki MP3 do tego albumu</label>
+        <input type="file" id="gen-files-existing" accept="audio/*" multiple>
+
+        <div class="gen-file-list" id="gen-files-existing-list" style="margin-bottom:15px;">
+          <div class="gen-empty">Brak nowych plików do dodania</div>
+        </div>
+
+        <div class="gen-existing-editor">
+          <h3 style="color:#fff; font-size:13px; margin-bottom:8px;">✏️ Istniejące utwory w albumie (możesz edytować tytuły, autorów, zmieniać kolejność lub usuwać)</h3>
+          <div id="gen-existing-tracks"></div>
+        </div>
+      </div>
+
+      <!-- PANEL 3: KOLEJNOŚĆ ALBUMÓW -->
+      <div class="gen-panel" id="panel-order">
+        <div class="hint">Zarządzaj kolejnością wyświetlania albumów (Przesuwaj w górę/dół lub usuwaj całe albumy):</div>
+        <div class="gen-albums-order-list" id="gen-albums-order-list"></div>
+      </div>
+
+      <div class="gen-actions">
+        <button class="primary" onclick="generateOutput()">🚀 Generuj całą strukturę JSON</button>
+        <button onclick="copyOutput()">📋 Kopiuj do schowka</button>
+      </div>
+
+      <div style="margin-top: 15px;">
+        <label>Wygenerowany kod JSON (wklej go w całości do pliku <code>albums.json</code> na GitHubie):</label>
+        <div class="gen-output">
+          <textarea id="gen-output" readonly placeholder="Tutaj pojawi się gotowy kod..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="gen-toast" id="gen-toast">✅ Skopiowano!</div>
+
   <script>
     let albumsData = [];
-    let playlist = [];
-    let currentIndex = -1;
-    let trackStats = {}; // Przechowuje liczniki pobrane z bazy dla aktualnego albumu
+    let genFiles = [];
+    let genFilesExisting = [];
+    let existingAuthors = {};
+    let existingTitles = {};
 
-    // Generuje unikalny i stabilny ID utworu na podstawie jego ścieżki w pliku src
     function getTrackId(src) {
       return btoa(unescape(encodeURIComponent(src))).replace(/[^a-zA-Z0-9]/g, '_');
     }
@@ -436,12 +612,13 @@
       return m + ':' + (s < 10 ? '0' : '') + s;
     }
 
-    // ==================== SUPABASE: STATYSTYKI =====================
+    // ==================== SUPABASE STATS =====================
+
+    let trackStats = {};
 
     async function fetchAlbumStats(tracks) {
       trackStats = {};
       const ids = tracks.map(t => getTrackId(t.src));
-      
       const { data, error } = await _supabase
         .from('utwory')
         .select('id, dislikes, views')
@@ -459,38 +636,35 @@
       const storageKey = `viewed_${trackId}`;
       if (localStorage.getItem(storageKey)) return;
 
-      // Pobierz aktualny stan lub załóż 0
       let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
       let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
-      
       const newViews = currentViews + 1;
       if (!trackStats[trackId]) trackStats[trackId] = {};
       trackStats[trackId].views = newViews;
 
-      // Aktualizuj w Supabase
-      const { error } = await _supabase
+      await _supabase
         .from('utwory')
         .upsert({ id: trackId, views: newViews, dislikes: currentDislikes }, { onConflict: ['id'] });
-
-      if (!error) {
-        localStorage.setItem(storageKey, 'true');
-        updateTrackUIStats(trackId);
-      }
+      localStorage.setItem(storageKey, 'true');
     }
 
     async function handleDislike(trackSrc, btnElement) {
       const trackId = getTrackId(trackSrc);
       const storageKey = `disliked_${trackId}`;
-      
-      if (localStorage.getItem(storageKey)) {
-        alert("Już dałeś dislike temu utworowi!");
-        return;
-      }
+      const isAlreadyDisliked = localStorage.getItem(storageKey) === 'true';
 
       let currentDislikes = (trackStats[trackId] && trackStats[trackId].dislikes) || 0;
       let currentViews = (trackStats[trackId] && trackStats[trackId].views) || 0;
 
-      const newDislikes = currentDislikes + 1;
+      let newDislikes;
+      if (isAlreadyDisliked) {
+        newDislikes = Math.max(0, currentDislikes - 1);
+        localStorage.removeItem(storageKey);
+      } else {
+        newDislikes = currentDislikes + 1;
+        localStorage.setItem(storageKey, 'true');
+      }
+
       if (!trackStats[trackId]) trackStats[trackId] = {};
       trackStats[trackId].dislikes = newDislikes;
 
@@ -499,21 +673,16 @@
         .upsert({ id: trackId, dislikes: newDislikes, views: currentViews }, { onConflict: ['id'] });
 
       if (!error) {
-        localStorage.setItem(storageKey, 'true');
         updateTrackUIStats(trackId);
-        btnElement.style.color = '#f66';
-        btnElement.style.borderColor = '#f66';
-      } else {
-        alert("Wystąpił błąd podczas zapisywania dislika.");
+        if (!isAlreadyDisliked) btnElement.classList.add('active');
+        else btnElement.classList.remove('active');
       }
     }
 
     function updateTrackUIStats(trackId) {
       const statEl = document.getElementById(`stats_${trackId}`);
       if (statEl && trackStats[trackId]) {
-        const d = trackStats[trackId].dislikes || 0;
-        const v = trackStats[trackId].views || 0;
-        statEl.textContent = `👎 ${d} | 👀 ${v}`;
+        statEl.textContent = `[${trackStats[trackId].dislikes || 0}] | 👀 ${trackStats[trackId].views || 0}`;
       }
     }
 
@@ -532,12 +701,10 @@
         return;
       }
 
-      // Znajdź nazwy utworów w lokalnym albumsData dopasowując po ID
       let html = '';
       data.forEach((row, index) => {
         let foundTitle = "Nieznany utwór";
         let foundAlbum = "";
-
         albumsData.forEach(album => {
           album.tracks.forEach(t => {
             if (getTrackId(t.src) === row.id) {
@@ -554,7 +721,7 @@
               ${foundAlbum ? `<div style="font-size:11px; color:#888;">Album: ${escapeHtml(foundAlbum)}</div>` : ''}
             </div>
             <div style="font-size: 13px; color: #f66;">
-              👎 ${row.dislikes} dislików &nbsp;|&nbsp; 👀 ${row.views} wyświetleń
+              [-] ${row.dislikes} &nbsp;|&nbsp; 👀 ${row.views}
             </div>
           </li>
         `;
@@ -627,7 +794,7 @@
       floatingRafId = requestAnimationFrame(step);
     }
 
-    // ===================== ROUTING =====================
+    // ==================== ROUTING =====================
 
     function getSlugFromURL() {
       const params = new URLSearchParams(window.location.search);
@@ -663,10 +830,7 @@
       const s = document.getElementById(id);
       if (s) s.classList.add('active');
       document.title = 'ICH SZEŚĆU';
-
-      if (id === 'top-dislikes') {
-        loadTopDislikes();
-      }
+      if (id === 'top-dislikes') loadTopDislikes();
     }
 
     function renderDiscographyView(push = true) {
@@ -687,7 +851,7 @@
       history.back();
     }
 
-    // ===================== ŁADOWANIE ALBUMÓW =====================
+    // ==================== ŁADOWANIE ALBUMÓW =====================
 
     async function loadAlbums() {
       const container = document.getElementById('albums-container');
@@ -734,12 +898,9 @@
       }
     }
 
-    // ===================== WIDOK POJEDYNCZEGO ALBUMU =====================
-
     async function renderSingleAlbum(slug, push = true) {
       const view = document.getElementById('single-album-view');
       const content = document.getElementById('single-album-content');
-
       const album = albumsData.find(a => (a.slug || '').toLowerCase() === slug.toLowerCase());
 
       if (!album) {
@@ -750,7 +911,6 @@
         return;
       }
 
-      // Pobierz statystyki z Supabase dla wszystkich utworów z tego albumu
       await fetchAlbumStats(album.tracks);
 
       playlist = album.tracks.map(t => ({
@@ -769,7 +929,7 @@
         const trackAuthor = normalizeAuthorsString(track.author);
         const trackId = getTrackId(track.src);
         const stats = trackStats[trackId] || { dislikes: 0, views: 0 };
-        const isDisliked = localStorage.getItem(`disliked_${trackId}`);
+        const isDisliked = localStorage.getItem(`disliked_${trackId}`) === 'true';
 
         tracksHtml += `
           <li class="track" data-idx="${idx}">
@@ -778,8 +938,8 @@
               ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
             <div class="track-actions">
-              <span class="stats-info" id="stats_${trackId}">👎 ${stats.dislikes} | 👀 ${stats.views}</span>
-              <button class="dislike-btn" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" style="${isDisliked ? 'color: #f66; border-color: #f66;' : ''}">👎</button>
+              <span class="stats-info" id="stats_${trackId}">[${stats.dislikes}] | 👀 ${stats.views}</span>
+              <button class="dislike-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Cofnij/daj dislike">[-]</button>
               <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playTrack(${idx})">--:--</span>
             </div>
           </li>
@@ -798,15 +958,11 @@
 
       hideAllSections();
       view.classList.add('active');
-
       loadDurations();
       document.title = album.title + ' — ICH SZEŚĆU';
 
-      if (album.bgImage && album.bgImage.trim()) {
-        startFloating(album.bgImage.trim());
-      } else {
-        stopFloating();
-      }
+      if (album.bgImage && album.bgImage.trim()) startFloating(album.bgImage.trim());
+      else stopFloating();
 
       if (push) pushAlbumURL(slug);
     }
@@ -817,14 +973,12 @@
         const tmp = document.createElement('audio');
         tmp.preload = 'metadata';
         tmp.src = src;
-        tmp.addEventListener('loadedmetadata', () => {
-          el.textContent = formatTime(tmp.duration);
-        });
+        tmp.addEventListener('loadedmetadata', () => { el.textContent = formatTime(tmp.duration); });
         tmp.addEventListener('error', () => { el.textContent = ''; });
       });
     }
 
-    // ===================== PLAYER =====================
+    // ==================== PLAYER =====================
 
     const audio = document.getElementById('audio-el');
     const playerEl = document.getElementById('player');
@@ -853,8 +1007,6 @@
 
       audio.src = encodeURI(item.src);
       audio.play().catch(err => console.log('Play error:', err));
-
-      // Zaliczenie wyświetlenia w Supabase po uruchomieniu utworu
       registerView(item.src);
 
       playerEl.classList.remove('hidden');
@@ -865,48 +1017,25 @@
       document.querySelectorAll('.track').forEach(t => t.classList.remove('playing'));
       const active = document.querySelector(`.track[data-idx="${index}"]`);
       if (active) active.classList.add('playing');
-
       updatePlayIcon(true);
     }
 
     function updatePlayIcon(isPlaying) {
-      if (isPlaying) {
-        plPlayIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
-      } else {
-        plPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
-      }
+      if (isPlaying) plPlayIcon.innerHTML = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+      else plPlayIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
     }
 
     plPlay.addEventListener('click', () => {
-      if (currentIndex === -1) {
-        if (playlist.length) playTrack(0);
-        return;
-      }
-      if (audio.paused) audio.play();
-      else audio.pause();
+      if (currentIndex === -1) { if (playlist.length) playTrack(0); return; }
+      if (audio.paused) audio.play(); else audio.pause();
     });
-
-    plPrev.addEventListener('click', () => {
-      if (currentIndex > 0) playTrack(currentIndex - 1);
-      else if (playlist.length) playTrack(playlist.length - 1);
-    });
-
-    plNext.addEventListener('click', () => {
-      if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1);
-      else playTrack(0);
-    });
+    plPrev.addEventListener('click', () => { if (currentIndex > 0) playTrack(currentIndex - 1); else if (playlist.length) playTrack(playlist.length - 1); });
+    plNext.addEventListener('click', () => { if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1); else playTrack(0); });
 
     audio.addEventListener('play', () => updatePlayIcon(true));
     audio.addEventListener('pause', () => updatePlayIcon(false));
-    audio.addEventListener('ended', () => {
-      if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1);
-      else updatePlayIcon(false);
-    });
-
-    audio.addEventListener('loadedmetadata', () => {
-      plDuration.textContent = formatTime(audio.duration);
-    });
-
+    audio.addEventListener('ended', () => { if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1); else updatePlayIcon(false); });
+    audio.addEventListener('loadedmetadata', () => { plDuration.textContent = formatTime(audio.duration); });
     audio.addEventListener('timeupdate', () => {
       if (!audio.duration) return;
       const pct = (audio.currentTime / audio.duration) * 100;
@@ -920,8 +1049,7 @@
       if (!audio.duration) return;
       const rect = plSeek.getBoundingClientRect();
       const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
-      const pct = x / rect.width;
-      audio.currentTime = pct * audio.duration;
+      audio.currentTime = (x / rect.width) * audio.duration;
     }
     plSeek.addEventListener('mousedown', (e) => { isSeeking = true; seekTo(e); });
     document.addEventListener('mousemove', (e) => { if (isSeeking) seekTo(e); });
@@ -937,7 +1065,6 @@
       plVolHandle.style.left = (volume * 100) + '%';
       localStorage.setItem('playerVolume', volume);
     }
-
     let isVolDragging = false;
     function setVolumeFromEvent(e) {
       const rect = plVolume.getBoundingClientRect();
@@ -949,17 +1076,300 @@
     plVolume.addEventListener('mousedown', (e) => { isVolDragging = true; setVolumeFromEvent(e); });
     document.addEventListener('mousemove', (e) => { if (isVolDragging) setVolumeFromEvent(e); });
     document.addEventListener('mouseup', () => { isVolDragging = false; });
-
-    plMute.addEventListener('click', () => {
-      volume = volume > 0 ? 0 : (lastVolume || 1);
-      applyVolume();
-    });
-
+    plMute.addEventListener('click', () => { volume = volume > 0 ? 0 : (lastVolume || 1); applyVolume(); });
     applyVolume();
 
-    window.addEventListener('DOMContentLoaded', async () => {
-      await loadAlbums();
+    // ==================== SUPER GENERATOR (6969) =====================
+
+    let typed = '';
+    document.addEventListener('keydown', (e) => {
+      if (e.target.matches('input, textarea, select')) return;
+      if (e.key.length !== 1) return;
+      typed += e.key;
+      if (typed.length > 4) typed = typed.slice(-4);
+      if (typed === '6969') { typed = ''; toggleGenerator(); }
     });
+
+    function toggleGenerator() {
+      const modal = document.getElementById('generator-modal');
+      if (modal.classList.contains('open')) closeGenerator();
+      else openGenerator();
+    }
+
+    function openGenerator() {
+      document.getElementById('generator-modal').classList.add('open');
+      refreshExistingSelect();
+      refreshExistingEditor();
+      refreshAlbumsOrderList();
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeGenerator() {
+      document.getElementById('generator-modal').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeGenerator(); });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.gen-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.gen-panel').forEach(p => p.classList.remove('active'));
+
+      if (tab === 'new') {
+        document.querySelectorAll('.gen-tab')[0].classList.add('active');
+        document.getElementById('panel-new').classList.add('active');
+      } else if (tab === 'existing') {
+        document.querySelectorAll('.gen-tab')[1].classList.add('active');
+        document.getElementById('panel-existing').classList.add('active');
+        refreshExistingSelect();
+        refreshExistingEditor();
+      } else if (tab === 'order') {
+        document.querySelectorAll('.gen-tab')[2].classList.add('active');
+        document.getElementById('panel-order').classList.add('active');
+        refreshAlbumsOrderList();
+      }
+    }
+
+    // Obsługa plików dla Nowego Albumu
+    document.getElementById('gen-files').addEventListener('change', (e) => {
+      for (const file of e.target.files) {
+        genFiles.push({ file, title: file.name.replace(/\.[^/.]+$/, ''), author: '' });
+      }
+      renderGenFiles();
+    });
+
+    function renderGenFiles() {
+      const container = document.getElementById('gen-file-list');
+      if (!genFiles.length) { container.innerHTML = '<div class="gen-empty">Brak wybranych plików MP3</div>'; return; }
+      container.innerHTML = '';
+      genFiles.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'gen-file-row';
+        row.innerHTML = `
+          <span style="font-size:11px; color:#888; word-break:break-all;">${escapeHtml(item.file.name)}</span>
+          <input type="text" placeholder="Tytuł" value="${escapeHtml(item.title)}" oninput="genFiles[${index}].title = this.value">
+          <input type="text" placeholder="Autorzy (po przecinku)" value="${escapeHtml(item.author)}" oninput="genFiles[${index}].author = this.value">
+          <button class="gen-btn-sm gen-btn-danger" onclick="genFiles.splice(${index},1); renderGenFiles()">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // Obsługa plików dodawanych do istniejącego albumu
+    document.getElementById('gen-files-existing').addEventListener('change', (e) => {
+      for (const file of e.target.files) {
+        genFilesExisting.push({ file, title: file.name.replace(/\.[^/.]+$/, ''), author: '' });
+      }
+      renderGenFilesExisting();
+    });
+
+    function renderGenFilesExisting() {
+      const container = document.getElementById('gen-files-existing-list');
+      if (!genFilesExisting.length) { container.innerHTML = '<div class="gen-empty">Brak nowych plików do dodania</div>'; return; }
+      container.innerHTML = '';
+      genFilesExisting.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = 'gen-file-row';
+        row.innerHTML = `
+          <span style="font-size:11px; color:#888; word-break:break-all;">${escapeHtml(item.file.name)}</span>
+          <input type="text" placeholder="Tytuł" value="${escapeHtml(item.title)}" oninput="genFilesExisting[${index}].title = this.value">
+          <input type="text" placeholder="Autorzy (po przecinku)" value="${escapeHtml(item.author)}" oninput="genFilesExisting[${index}].author = this.value">
+          <button class="gen-btn-sm gen-btn-danger" onclick="genFilesExisting.splice(${index},1); renderGenFilesExisting()">✕</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function refreshExistingSelect() {
+      const select = document.getElementById('gen-existing-select');
+      const prev = select.value;
+      select.innerHTML = '';
+      albumsData.forEach((album, i) => {
+        select.innerHTML += `<option value="${i}">${escapeHtml(album.title)} (${escapeHtml(album.year)})</option>`;
+      });
+      if (prev && albumsData[prev]) select.value = prev;
+    }
+
+    document.getElementById('gen-existing-select').addEventListener('change', () => { refreshExistingEditor(); });
+
+    function refreshExistingEditor() {
+      const container = document.getElementById('gen-existing-tracks');
+      const select = document.getElementById('gen-existing-select');
+      const coverInput = document.getElementById('gen-existing-cover');
+      const bgInput = document.getElementById('gen-existing-bgimage');
+
+      const albumIdx = parseInt(select.value, 10);
+      if (isNaN(albumIdx) || !albumsData[albumIdx]) { container.innerHTML = '<div class="gen-empty">Brak albumu.</div>'; return; }
+
+      const album = albumsData[albumIdx];
+      coverInput.value = album.cover || '';
+      bgInput.value = album.bgImage || '';
+
+      if (!existingAuthors[albumIdx]) existingAuthors[albumIdx] = album.tracks.map(t => t.author || '');
+      if (!existingTitles[albumIdx]) existingTitles[albumIdx] = album.tracks.map(t => t.title || '');
+
+      container.innerHTML = '';
+      album.tracks.forEach((track, tIdx) => {
+        const row = document.createElement('div');
+        row.className = 'gen-existing-track';
+        row.innerHTML = `
+          <span style="font-size:11px; color:#666;">${tIdx + 1}.</span>
+          <input type="text" value="${escapeHtml(existingTitles[albumIdx][tIdx])}" oninput="existingTitles[${albumIdx}][${tIdx}] = this.value" placeholder="Tytuł">
+          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[albumIdx][${tIdx}] = this.value" placeholder="Autorzy">
+          <div style="display:flex; gap:3px;">
+            ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)" title="W górę">▲</button>` : ''}
+            ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)" title="W dół">▼</button>` : ''}
+            <button class="gen-btn-sm gen-btn-danger" onclick="removeExistingTrack(${albumIdx}, ${tIdx})" title="Usuń">✕</button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function moveTrack(albumIdx, tIdx, direction) {
+      const tracks = albumsData[albumIdx].tracks;
+      const authors = existingAuthors[albumIdx];
+      const titles = existingTitles[albumIdx];
+
+      const target = tIdx + direction;
+      if (target < 0 || target >= tracks.length) return;
+
+      [tracks[tIdx], tracks[target]] = [tracks[target], tracks[tIdx]];
+      [authors[tIdx], authors[target]] = [authors[target], authors[tIdx]];
+      [titles[tIdx], titles[target]] = [titles[target], titles[tIdx]];
+
+      refreshExistingEditor();
+    }
+
+    function removeExistingTrack(albumIdx, tIdx) {
+      albumsData[albumIdx].tracks.splice(tIdx, 1);
+      existingAuthors[albumIdx].splice(tIdx, 1);
+      existingTitles[albumIdx].splice(tIdx, 1);
+      refreshExistingEditor();
+    }
+
+    // Zarządzanie kolejnością albumów
+    function refreshAlbumsOrderList() {
+      const container = document.getElementById('gen-albums-order-list');
+      if (!albumsData.length) { container.innerHTML = '<div class="gen-empty">Brak albumów</div>'; return; }
+      container.innerHTML = '';
+      albumsData.forEach((album, idx) => {
+        const row = document.createElement('div');
+        row.className = 'gen-album-order-row';
+        row.innerHTML = `
+          <span style="font-size:11px; color:#888; text-align:center;">#${idx + 1}</span>
+          <input type="text" value="${escapeHtml(album.title)}" oninput="albumsData[${idx}].title = this.value" placeholder="Tytuł albumu">
+          <div style="display:flex; gap:3px;">
+            ${idx > 0 ? `<button class="gen-btn-sm" onclick="moveAlbum(${idx}, -1)">▲</button>` : ''}
+            ${idx < albumsData.length - 1 ? `<button class="gen-btn-sm" onclick="moveAlbum(${idx}, 1)">▼</button>` : ''}
+          </div>
+          <button class="gen-btn-sm gen-btn-danger" onclick="removeAlbum(${idx})">Usuń album</button>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function moveAlbum(idx, dir) {
+      const target = idx + dir;
+      if (target < 0 || target >= albumsData.length) return;
+      [albumsData[idx], albumsData[target]] = [albumsData[target], albumsData[idx]];
+      refreshAlbumsOrderList();
+      refreshExistingSelect();
+    }
+
+    function removeAlbum(idx) {
+      if (confirm("Czy na pewno chcesz usunąć ten album?")) {
+        albumsData.splice(idx, 1);
+        refreshAlbumsOrderList();
+        refreshExistingSelect();
+      }
+    }
+
+    function generateOutput() {
+      const out = document.getElementById('gen-output');
+
+      // Jeśli użytkownik jest w zakładce "Nowy album" i coś wpisał, dopisz go
+      const title = document.getElementById('gen-title').value.trim();
+      const slug = document.getElementById('gen-slug').value.trim();
+      const year = document.getElementById('gen-year').value.trim();
+      const cover = document.getElementById('gen-cover').value.trim();
+
+      if (title && slug && year && cover) {
+        const bgImage = document.getElementById('gen-bgimage').value.trim();
+        const newAlbum = { title, slug, year, cover };
+        if (bgImage) newAlbum.bgImage = bgImage;
+        newAlbum.tracks = genFiles.map(f => ({
+          title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
+          src: 'Muzyka/' + f.file.name,
+          ...(normalizeAuthorsString(f.author) ? { author: normalizeAuthorsString(f.author) } : {})
+        }));
+        albumsData.push(newAlbum);
+        // Wyczyść formularz nowego
+        document.getElementById('gen-title').value = '';
+        document.getElementById('gen-slug').value = '';
+        document.getElementById('gen-year').value = '';
+        document.getElementById('gen-cover').value = '';
+        document.getElementById('gen-bgimage').value = '';
+        genFiles = [];
+        renderGenFiles();
+      }
+
+      // Zaktualizuj istniejący album o zmiany z panelu edycji
+      const select = document.getElementById('gen-existing-select');
+      const idx = parseInt(select.value, 10);
+      if (!isNaN(idx) && albumsData[idx]) {
+        const album = albumsData[idx];
+        album.cover = document.getElementById('gen-existing-cover').value.trim();
+        const bg = document.getElementById('gen-existing-bgimage').value.trim();
+        if (bg) album.bgImage = bg; else delete album.bgImage;
+
+        if (existingTitles[idx] && existingAuthors[idx]) {
+          album.tracks.forEach((t, tIdx) => {
+            t.title = existingTitles[idx][tIdx] || t.title;
+            const a = normalizeAuthorsString(existingAuthors[idx][tIdx]);
+            if (a) t.author = a; else delete t.author;
+          });
+        }
+
+        // Dodaj nowe pliki jeśli wybrano
+        if (genFilesExisting.length > 0) {
+          genFilesExisting.forEach(f => {
+            album.tracks.push({
+              title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
+              src: 'Muzyka/' + f.file.name,
+              ...(normalizeAuthorsString(f.author) ? { author: normalizeAuthorsString(f.author) } : {})
+            });
+          });
+          genFilesExisting = [];
+          renderGenFilesExisting();
+        }
+      }
+
+      out.value = JSON.stringify(albumsData, null, 2);
+    }
+
+    async function copyOutput() {
+      generateOutput();
+      const out = document.getElementById('gen-output');
+      if (!out.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(out.value);
+        showToast('✅ Skopiowano cały JSON do schowka!');
+      } catch (err) {
+        out.select();
+        document.execCommand('copy');
+        showToast('✅ Skopiowano!');
+      }
+    }
+
+    function showToast(text) {
+      const toast = document.getElementById('gen-toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 1800);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => { loadAlbums(); });
   </script>
 
 </body>
