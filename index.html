@@ -416,7 +416,7 @@
     }
     .gen-file-row:last-child { border-bottom: none; }
     .gen-file-row .filename {
-      flex: 0 0 40%;
+      flex: 0 0 32%;
       font-size: 11px;
       color: #888;
       word-break: break-all;
@@ -430,6 +430,7 @@
       border: 1px solid #444;
       font-family: inherit;
       font-size: 13px;
+      min-width: 0;
     }
     .gen-file-row .remove {
       background: #300;
@@ -438,9 +439,68 @@
       padding: 5px 10px;
       cursor: pointer;
       font-size: 12px;
+      flex-shrink: 0;
     }
 
     .gen-empty { padding: 20px; text-align: center; color: #555; font-size: 12px; }
+
+    /* Sekcja edycji autorów istniejących utworów */
+    .gen-existing-editor {
+      margin-top: 20px;
+      border: 1px solid #333;
+      padding: 12px;
+    }
+    .gen-existing-editor h3 {
+      font-size: 13px;
+      color: #fff;
+      margin-bottom: 10px;
+      font-family: inherit;
+      font-weight: normal;
+    }
+    .gen-existing-editor .hint {
+      font-size: 11px;
+      color: #888;
+      margin-bottom: 10px;
+    }
+    .gen-existing-track {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .gen-existing-track:last-child { border-bottom: none; }
+    .gen-existing-track .tnum {
+      flex: 0 0 25px;
+      font-size: 11px;
+      color: #666;
+      text-align: right;
+    }
+    .gen-existing-track .tinfo {
+      flex: 1;
+      min-width: 0;
+    }
+    .gen-existing-track .ttitle {
+      font-size: 12px;
+      color: #ddd;
+      word-break: break-word;
+      margin-bottom: 4px;
+    }
+    .gen-existing-track .tsrc {
+      font-size: 10px;
+      color: #555;
+      word-break: break-all;
+    }
+    .gen-existing-track input {
+      flex: 0 0 180px;
+      padding: 5px 8px;
+      background: #000;
+      color: #fff;
+      border: 1px solid #444;
+      font-family: inherit;
+      font-size: 12px;
+      min-width: 0;
+    }
 
     .gen-actions {
       display: flex;
@@ -639,6 +699,12 @@
 
         <label>Pliki MP3 do dodania</label>
         <input type="file" id="gen-files-existing" accept="audio/*" multiple>
+
+        <div class="gen-existing-editor" id="gen-existing-editor">
+          <h3>✏️ Edytuj autorów istniejących utworów</h3>
+          <div class="hint">Pole autora zostaw puste, żeby utwór pozostał bez autora w JSON.</div>
+          <div id="gen-existing-tracks"></div>
+        </div>
       </div>
 
       <div class="gen-file-list" id="gen-file-list">
@@ -646,7 +712,7 @@
       </div>
 
       <div class="gen-info">
-        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Nazwa pliku w <code>src</code> pozostaje taka jak na dysku.
+        💡 Tytuł utworu generuje się automatycznie z nazwy pliku (bez .mp3). Możesz go dowolnie edytować. Pole autora jest opcjonalne — puste = brak klucza <code>author</code> w JSON.
       </div>
 
       <div class="gen-actions">
@@ -674,6 +740,10 @@
     let genFiles = [];
     let genTab = 'new';
     let genMode = 'full';
+
+    // Edycja autorów istniejących utworów – klucz: indeks albumu, wartość: tablica autorów
+    // (równolegle do albumsData[albumIndex].tracks)
+    let existingAuthors = {};
 
     let playlist = [];
     let currentIndex = -1;
@@ -710,9 +780,10 @@
           let tracksHtml = '';
           album.tracks.forEach(track => {
             const idx = globalIdx++;
+            const authorPart = track.author ? `<span style="color:#888; font-style:italic;">${escapeHtml(track.author)} – </span>` : '';
             tracksHtml += `
               <li class="track" data-idx="${idx}" onclick="playTrack(${idx})">
-                <span class="track-title">${escapeHtml(track.title)}</span>
+                <span class="track-title">${authorPart}${escapeHtml(track.title)}</span>
                 <span class="track-duration" data-src="${encodeURI(track.src)}">--:--</span>
               </li>
             `;
@@ -897,13 +968,10 @@
     function updateVolIcon() {
       let path;
       if (volume === 0) {
-        // wyciszony - głośnik z X
         path = '<path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>';
       } else if (volume < 0.5) {
-        // cicho - 1 fala
         path = '<path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>';
       } else {
-        // głośno - 2 fale
         path = '<path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>';
       }
       plVolIcon.innerHTML = path;
@@ -935,7 +1003,6 @@
       applyVolume();
     });
 
-    // inicjalizacja volume
     applyVolume();
 
     // ===== BLOKADA PRAWEJ MYSZY =====
@@ -985,6 +1052,7 @@
       const modal = document.getElementById('generator-modal');
       modal.classList.add('open');
       refreshExistingSelect();
+      refreshExistingEditor();
       document.body.style.overflow = 'hidden';
     }
 
@@ -1009,6 +1077,7 @@
         document.querySelectorAll('.gen-tab')[1].classList.add('active');
         document.getElementById('panel-existing').classList.add('active');
         refreshExistingSelect();
+        refreshExistingEditor();
       }
 
       genFiles = [];
@@ -1020,19 +1089,74 @@
     function refreshExistingSelect() {
       const select = document.getElementById('gen-existing-select');
       if (!select) return;
+      const prev = select.value;
       select.innerHTML = '';
       albumsData.forEach((album, i) => {
         select.innerHTML += `<option value="${i}">${escapeHtml(album.title)} (${escapeHtml(album.year)})</option>`;
       });
       if (!albumsData.length) {
         select.innerHTML = '<option>Brak albumów</option>';
+      } else if (prev && albumsData[prev]) {
+        select.value = prev;
       }
     }
+
+    function refreshExistingEditor() {
+      const container = document.getElementById('gen-existing-tracks');
+      const select = document.getElementById('gen-existing-select');
+      if (!container || !select) return;
+
+      const albumIdx = parseInt(select.value, 10);
+      if (isNaN(albumIdx) || !albumsData[albumIdx]) {
+        container.innerHTML = '<div class="gen-empty">Brak albumu do edycji.</div>';
+        return;
+      }
+
+      const album = albumsData[albumIdx];
+
+      // Zainicjalizuj tablicę autorów dla tego albumu, jeśli jeszcze nie istnieje
+      if (!existingAuthors[albumIdx] || existingAuthors[albumIdx].length !== album.tracks.length) {
+        existingAuthors[albumIdx] = album.tracks.map(t => t.author || '');
+      }
+
+      const authors = existingAuthors[albumIdx];
+
+      container.innerHTML = '';
+      album.tracks.forEach((track, tIdx) => {
+        const row = document.createElement('div');
+        row.className = 'gen-existing-track';
+
+        const num = document.createElement('span');
+        num.className = 'tnum';
+        num.textContent = (tIdx + 1) + '.';
+
+        const info = document.createElement('div');
+        info.className = 'tinfo';
+        info.innerHTML = `<div class="ttitle">${escapeHtml(track.title)}</div><div class="tsrc">${escapeHtml(track.src)}</div>`;
+
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Autor (opcjonalnie)';
+        input.value = authors[tIdx] || '';
+        input.addEventListener('input', () => {
+          existingAuthors[albumIdx][tIdx] = input.value;
+        });
+
+        row.appendChild(num);
+        row.appendChild(info);
+        row.appendChild(input);
+        container.appendChild(row);
+      });
+    }
+
+    document.getElementById('gen-existing-select').addEventListener('change', () => {
+      refreshExistingEditor();
+    });
 
     function handleGenFiles(fileList) {
       for (const file of fileList) {
         const title = file.name.replace(/\.[^/.]+$/, '');
-        genFiles.push({ file, title });
+        genFiles.push({ file, title, author: '' });
       }
       renderGenFiles();
     }
@@ -1048,17 +1172,38 @@
       genFiles.forEach((item, index) => {
         const row = document.createElement('div');
         row.className = 'gen-file-row';
-        row.innerHTML = `
-          <span class="filename">${escapeHtml(item.file.name)}</span>
-          <input type="text" value="${escapeHtml(item.title)}" oninput="updateTitle(${index}, this.value)">
-          <button class="remove" onclick="removeGenFile(${index})">✕</button>
-        `;
+
+        const fn = document.createElement('span');
+        fn.className = 'filename';
+        fn.textContent = item.file.name;
+
+        const authorInput = document.createElement('input');
+        authorInput.type = 'text';
+        authorInput.placeholder = 'Autor (opcjonalnie)';
+        authorInput.value = item.author || '';
+        authorInput.addEventListener('input', () => {
+          genFiles[index].author = authorInput.value;
+        });
+
+        const titleInput = document.createElement('input');
+        titleInput.type = 'text';
+        titleInput.placeholder = 'Tytuł';
+        titleInput.value = item.title || '';
+        titleInput.addEventListener('input', () => {
+          genFiles[index].title = titleInput.value;
+        });
+
+        const btn = document.createElement('button');
+        btn.className = 'remove';
+        btn.textContent = '✕';
+        btn.addEventListener('click', () => removeGenFile(index));
+
+        row.appendChild(fn);
+        row.appendChild(authorInput);
+        row.appendChild(titleInput);
+        row.appendChild(btn);
         container.appendChild(row);
       });
-    }
-
-    function updateTitle(index, value) {
-      if (genFiles[index]) genFiles[index].title = value;
     }
 
     function removeGenFile(index) {
@@ -1070,6 +1215,16 @@
       genMode = mode;
       document.getElementById('mode-full').classList.toggle('active', mode === 'full');
       document.getElementById('mode-frag').classList.toggle('active', mode === 'frag');
+    }
+
+    function makeTrack(file, author, title) {
+      const t = {
+        title: title || file.name.replace(/\.[^/.]+$/, ''),
+        src: 'Muzyka/' + file.name,
+      };
+      const a = (author || '').trim();
+      if (a) t.author = a;
+      return t;
     }
 
     function generateOutput() {
@@ -1093,10 +1248,7 @@
           title,
           year,
           cover,
-          tracks: genFiles.map(f => ({
-            title: f.title,
-            src: 'Muzyka/' + f.file.name,
-          })),
+          tracks: genFiles.map(f => makeTrack(f.file, f.author, f.title)),
         };
 
         if (genMode === 'full') {
@@ -1114,22 +1266,38 @@
           out.value = '⚠️ Wybierz istniejący album.';
           return;
         }
-        if (!genFiles.length) {
-          out.value = '⚠️ Wybierz przynajmniej jeden plik MP3.';
+
+        const album = albumsData[index];
+        const editedAuthors = existingAuthors[index] || album.tracks.map(t => t.author || '');
+        const hasNewFiles = genFiles.length > 0;
+        const hasAuthorChanges = album.tracks.some((t, i) =>
+          (editedAuthors[i] || '').trim() !== (t.author || '').trim()
+        );
+
+        if (!hasNewFiles && !hasAuthorChanges) {
+          out.value = '⚠️ Nic do zrobienia — wybierz pliki MP3 i/lub zmień autorów istniejących utworów.';
           return;
         }
 
-        const newTracks = genFiles.map(f => ({
-          title: f.title,
-          src: 'Muzyka/' + f.file.name,
-        }));
+        // Zbuduj zaktualizowany album
+        const updatedTracks = album.tracks.map((t, i) => {
+          const copy = { title: t.title, src: t.src };
+          const a = (editedAuthors[i] || '').trim();
+          if (a) copy.author = a;
+          return copy;
+        });
+
+        if (hasNewFiles) {
+          const newTracks = genFiles.map(f => makeTrack(f.file, f.author, f.title));
+          updatedTracks.push(...newTracks);
+        }
 
         if (genMode === 'full') {
           const full = JSON.parse(JSON.stringify(albumsData));
-          full[index].tracks = full[index].tracks.concat(newTracks);
+          full[index].tracks = updatedTracks;
           out.value = JSON.stringify(full, null, 2);
         } else {
-          out.value = JSON.stringify(newTracks, null, 2);
+          out.value = JSON.stringify(updatedTracks, null, 2);
         }
       }
     }
