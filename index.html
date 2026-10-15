@@ -155,8 +155,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      width: 40px;
-      height: 40px;
+      width: 160px;
+      height: 160px;
       object-fit: contain;
       opacity: 0.75;
       will-change: transform;
@@ -286,7 +286,7 @@
     }
     @media (max-width: 700px) {
       .player-left { width: auto; min-width: 0; flex: 0 1 auto; max-width: 130px; }
-      .player-left img { width: 40px; height: 40px; }
+      .player-left img { width: 160px; height: 160px; }
       .player-info .t { font-size: 12px; }
       .player-info .a { font-size: 10px; }
       #player { padding: 8px 10px; gap: 8px; }
@@ -752,7 +752,7 @@
       // Liczba obrazków i rozmiar (na mobile mniejszy)
       const isMobile = window.innerWidth <= 700;
       const COUNT = isMobile ? 10 : 14;
-      const SIZE = isMobile ? 30 : 40;
+      const SIZE = isMobile ? 160 : 160;
       const SPEED_MIN = 0.4;
       const SPEED_MAX = 1.2;
 
