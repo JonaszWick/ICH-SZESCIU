@@ -1,84 +1,5 @@
 [
   {
-    "title": "BAKTERIA MUSIC",
-    "slug": "Bakteria-music",
-    "year": "2026",
-    "cover": "okladka1.png",
-    "tracks": [
-      {
-        "title": "1. Baktiera music",
-        "src": "Muzyka/Baktiera music.mp3",
-        "author": "Tutel, Dwupak, JanuszWick, CichyZabójcaMURDERER"
-      },
-      {
-        "title": "2. trepa martretor",
-        "src": "Muzyka/trepa martretor.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "3. lolololo",
-        "src": "Muzyka/lolololo.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "4. grzyptop",
-        "src": "Muzyka/grzyptop.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "5. Musardrop",
-        "src": "Muzyka/Musardrop.mp3",
-        "author": "CichyZabójcaMURDERER"
-      },
-      {
-        "title": "6. pindoloroperomero",
-        "src": "Muzyka/pindoloroperomero.mp3",
-        "author": "CichyZabójcaMURDERER"
-      },
-      {
-        "title": "7. popsmoke",
-        "src": "Muzyka/popsmoke.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "8. szczerbortyczak",
-        "src": "Muzyka/szczerbortyczak.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "9. gnietwa portuwina",
-        "src": "Muzyka/gnietwa portuwina.mp3",
-        "author": "Dwupak, Tutel, CichyZabójcaMURDERER"
-      },
-      {
-        "title": "10. peptyd poltergeist",
-        "src": "Muzyka/peptyd poltergeist.mp3",
-        "author": "Dwupak, Tutel"
-      },
-      {
-        "title": "11. mr beast",
-        "src": "Muzyka/mr beast.mp3",
-        "author": "Tutel"
-      },
-      {
-        "title": "12. flegma pierdolony szlam",
-        "src": "Muzyka/flegma pierdolony szlam.mp3",
-        "author": "Dwupak"
-      },
-      {
-        "title": "13. ostatnia nocka w czopie",
-        "src": "Muzyka/ostatnia nocka w czopie.mp3",
-        "author": "CichyZabójcaMURDERER"
-      },
-      {
-        "title": "14. lekcja fl-a dla roberta",
-        "src": "Muzyka/lekcja fla dla roberta.mp3",
-        "author": "CichyZabójcaMURDERER"
-      }
-    ],
-    "bgImage": "baktierrrra.png"
-  },
-  {
     "title": "HIPHOP X",
     "slug": "Hiphop-x",
     "year": "2026",
@@ -225,5 +146,84 @@
         "author": "CichyZabójcaMURDERER"
       }
     ]
+  },
+  {
+    "title": "BAKTERIA MUSIC",
+    "slug": "Bakteria-music",
+    "year": "2026",
+    "cover": "okladka1.png",
+    "tracks": [
+      {
+        "title": "1. Baktiera music",
+        "src": "Muzyka/Baktiera music.mp3",
+        "author": "Tutel, Dwupak, JanuszWick, CichyZabójcaMURDERER"
+      },
+      {
+        "title": "2. trepa martretor",
+        "src": "Muzyka/trepa martretor.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "3. lolololo",
+        "src": "Muzyka/lolololo.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "4. grzyptop",
+        "src": "Muzyka/grzyptop.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "5. Musardrop",
+        "src": "Muzyka/Musardrop.mp3",
+        "author": "CichyZabójcaMURDERER"
+      },
+      {
+        "title": "6. pindoloroperomero",
+        "src": "Muzyka/pindoloroperomero.mp3",
+        "author": "CichyZabójcaMURDERER"
+      },
+      {
+        "title": "7. popsmoke",
+        "src": "Muzyka/popsmoke.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "8. szczerbortyczak",
+        "src": "Muzyka/szczerbortyczak.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "9. gnietwa portuwina",
+        "src": "Muzyka/gnietwa portuwina.mp3",
+        "author": "Dwupak, Tutel, CichyZabójcaMURDERER"
+      },
+      {
+        "title": "10. peptyd poltergeist",
+        "src": "Muzyka/peptyd poltergeist.mp3",
+        "author": "Dwupak, Tutel"
+      },
+      {
+        "title": "11. mr beast",
+        "src": "Muzyka/mr beast.mp3",
+        "author": "Tutel"
+      },
+      {
+        "title": "12. flegma pierdolony szlam",
+        "src": "Muzyka/flegma pierdolony szlam.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "13. ostatnia nocka w czopie",
+        "src": "Muzyka/ostatnia nocka w czopie.mp3",
+        "author": "CichyZabójcaMURDERER"
+      },
+      {
+        "title": "14. lekcja fl-a dla roberta",
+        "src": "Muzyka/lekcja fla dla roberta.mp3",
+        "author": "CichyZabójcaMURDERER"
+      }
+    ],
+    "bgImage": "baktierrrra.png"
   }
 ]
