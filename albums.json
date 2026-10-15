@@ -1,6 +1,7 @@
 [
   {
     "title": "BAKTERIA MUSIC",
+    "slug": "Bakteria-music",
     "year": "2026",
     "cover": "okladka1.png",
     "tracks": [
@@ -27,12 +28,12 @@
       {
         "title": "5. Musardrop",
         "src": "Muzyka/Musardrop.mp3",
-        "author": "CIchyZabójcaMURDERER"
+        "author": "CichyZabójcaMURDERER"
       },
       {
         "title": "6. pindoloroperomero",
         "src": "Muzyka/pindoloroperomero.mp3",
-        "author": "CIchyZabójcaMURDERER"
+        "author": "CichyZabójcaMURDERER"
       },
       {
         "title": "7. popsmoke",
@@ -72,12 +73,13 @@
       {
         "title": "14. lekcja fl-a dla roberta",
         "src": "Muzyka/lekcja fla dla roberta.mp3",
-        "author": "CichyZabójcaMURDERER, CichyZabójcaMURDERER"
+        "author": "CichyZabójcaMURDERER"
       }
     ]
   },
   {
     "title": "HIPHOP X",
+    "slug": "Hiphop-x",
     "year": "2026",
     "cover": "HIPHOPX.png",
     "tracks": [
