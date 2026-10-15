@@ -142,7 +142,6 @@
       display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     }
     
-    /* Przycisk dislika z licznikiem obok */
     .dislike-action-group {
       display: flex; align-items: center; gap: 4px;
     }
@@ -155,7 +154,6 @@
     .dislike-img-btn.active { opacity: 1; }
     .dislike-count { font-size: 12px; color: #aaa; min-width: 15px; text-align: left; }
 
-    /* Wyświetlenia z ikoną view.png */
     .stat-container {
       display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888;
     }
@@ -549,6 +547,11 @@
     let existingAuthors = {};
     let existingTitles = {};
 
+    let currentPlayingAlbumSlug = null;
+    let currentTrackIndex = -1;
+    let currentPlayingSrc = null;
+    let viewRecordedForCurrentTrack = false;
+
     function getTrackId(src) {
       return btoa(unescape(encodeURIComponent(src))).replace(/[^a-zA-Z0-9]/g, '_');
     }
@@ -595,8 +598,6 @@
     // ==================== SUPABASE & STATYSTYKI =====================
 
     let trackStats = {};
-    let currentPlayingSrc = null;
-    let viewRecordedForCurrentTrack = false;
 
     async function fetchAlbumStats(tracks) {
       trackStats = {};
@@ -677,7 +678,6 @@
         const d = trackStats[trackId].dislikes || 0;
         const v = trackStats[trackId].views || 0;
         
-        // Licznik dislików ląduje w przycisku obok ikony, a wyświetlenia zostają osobno z ikoną view.png
         const countSpan = statsGroup.querySelector('.dislike-count');
         const viewsSpan = statsGroup.querySelector('.views-count');
         
@@ -914,15 +914,6 @@
 
       await fetchAlbumStats(album.tracks);
 
-      playlist = album.tracks.map(t => ({
-        title: t.title,
-        author: normalizeAuthorsString(t.author),
-        src: t.src,
-        cover: album.cover,
-        album: album.title,
-      }));
-      currentIndex = -1;
-
       const authors = uniqueAuthors(album.tracks);
 
       let tracksHtml = '';
@@ -932,24 +923,24 @@
         const stats = trackStats[trackId] || { dislikes: 0, views: 0 };
         const isDisliked = localStorage.getItem(`disliked_${trackId}`) === 'true';
 
+        // Sprawdź czy ten utwór jest aktualnie odtwarzany
+        const isCurrentPlaying = (currentPlayingAlbumSlug && currentPlayingAlbumSlug.toLowerCase() === slug.toLowerCase() && currentTrackIndex === idx);
+
         tracksHtml += `
-          <li class="track" data-idx="${idx}">
-            <div class="track-text" onclick="playTrack(${idx})">
+          <li class="track ${isCurrentPlaying ? 'playing' : ''}" data-idx="${idx}">
+            <div class="track-text" onclick="playAlbumTrack('${slug.replace(/'/g, "\\'")}', ${idx})">
               <span class="track-title">${escapeHtml(track.title)}</span>
               ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
             <div class="track-actions" id="stats_${trackId}">
-              <!-- Przycisk dislika z licznikiem -->
               <div class="dislike-action-group">
                 <button class="dislike-img-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Daj/cofnij dislike">
                   <img src="${isDisliked ? 'dislikeon.png' : 'dislikeoff.png'}" alt="Dislike">
                 </button>
                 <span class="dislike-count">${stats.dislikes}</span>
               </div>
-              <!-- Licznik wyświetleń -->
               <span class="stat-container"><img src="view.png" alt="views"><span class="views-count">${stats.views}</span></span>
-              
-              <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playTrack(${idx})">--:--</span>
+              <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playAlbumTrack('${slug.replace(/'/g, "\\'")}', ${idx})">--:--</span>
             </div>
           </li>
         `;
@@ -1009,25 +1000,31 @@
     const plVolFill = document.getElementById('pl-volume-fill');
     const plVolHandle = document.getElementById('pl-volume-handle');
 
-    function playTrack(index) {
-      if (index < 0 || index >= playlist.length) return;
-      currentIndex = index;
-      const item = playlist[index];
+    function playAlbumTrack(albumSlug, index) {
+      const album = albumsData.find(a => (a.slug || '').toLowerCase() === albumSlug.toLowerCase());
+      if (!album || !album.tracks[index]) return;
 
-      currentPlayingSrc = item.src;
+      currentPlayingAlbumSlug = album.slug;
+      currentTrackIndex = index;
+      const track = album.tracks[index];
+
+      currentPlayingSrc = track.src;
       viewRecordedForCurrentTrack = false;
 
-      audio.src = encodeURI(item.src);
+      audio.src = encodeURI(track.src);
       audio.play().catch(err => console.log('Play error:', err));
 
       playerEl.classList.remove('hidden');
-      plCover.src = encodeURI(item.cover);
-      plTitle.textContent = item.title;
-      plAlbum.textContent = item.author ? (item.author + ' • ' + item.album) : item.album;
+      plCover.src = encodeURI(album.cover);
+      plTitle.textContent = track.title;
+      const authorStr = normalizeAuthorsString(track.author);
+      plAlbum.textContent = authorStr ? (authorStr + ' • ' + album.title) : album.title;
 
+      // Zaktualizuj podświetlenie na liście jeśli jesteśmy w widoku tego albumu
       document.querySelectorAll('.track').forEach(t => t.classList.remove('playing'));
       const active = document.querySelector(`.track[data-idx="${index}"]`);
       if (active) active.classList.add('playing');
+
       updatePlayIcon(true);
     }
 
@@ -1037,15 +1034,59 @@
     }
 
     plPlay.addEventListener('click', () => {
-      if (currentIndex === -1) { if (playlist.length) playTrack(0); return; }
+      if (currentTrackIndex === -1) {
+        if (albumsData.length && albumsData[0].tracks.length) {
+          playAlbumTrack(albumsData[0].slug, 0);
+        }
+        return;
+      }
       if (audio.paused) audio.play(); else audio.pause();
     });
-    plPrev.addEventListener('click', () => { if (currentIndex > 0) playTrack(currentIndex - 1); else if (playlist.length) playTrack(playlist.length - 1); });
-    plNext.addEventListener('click', () => { if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1); else playTrack(0); });
+
+    plPrev.addEventListener('click', () => {
+      if (!currentPlayingAlbumSlug) return;
+      const albumIndex = albumsData.findIndex(a => a.slug.toLowerCase() === currentPlayingAlbumSlug.toLowerCase());
+      if (albumIndex === -1) return;
+      const album = albumsData[albumIndex];
+
+      if (currentTrackIndex > 0) {
+        playAlbumTrack(album.slug, currentTrackIndex - 1);
+      } else {
+        // Przejdź do poprzedniego albumu na sam koniec
+        const prevAlbumIndex = (albumIndex - 1 + albumsData.length) % albumsData.length;
+        const prevAlbum = albumsData[prevAlbumIndex];
+        playAlbumTrack(prevAlbum.slug, prevAlbum.tracks.length - 1);
+      }
+    });
+
+    plNext.addEventListener('click', () => {
+      playNextTrackAuto();
+    });
+
+    function playNextTrackAuto() {
+      if (!currentPlayingAlbumSlug) return;
+      const albumIndex = albumsData.findIndex(a => a.slug.toLowerCase() === currentPlayingAlbumSlug.toLowerCase());
+      if (albumIndex === -1) return;
+      const album = albumsData[albumIndex];
+
+      if (currentTrackIndex < album.tracks.length - 1) {
+        playAlbumTrack(album.slug, currentTrackIndex + 1);
+      } else {
+        // Koniec albumu – przejdź płynnie do pierwszego utworu w NASTĘPNYM albumie!
+        const nextAlbumIndex = (albumIndex + 1) % albumsData.length;
+        const nextAlbum = albumsData[nextAlbumIndex];
+        if (nextAlbum && nextAlbum.tracks.length > 0) {
+          playAlbumTrack(nextAlbum.slug, 0);
+        }
+      }
+    }
 
     audio.addEventListener('play', () => updatePlayIcon(true));
     audio.addEventListener('pause', () => updatePlayIcon(false));
-    audio.addEventListener('ended', () => { if (currentIndex < playlist.length - 1) playTrack(currentIndex + 1); else updatePlayIcon(false); });
+    audio.addEventListener('ended', () => {
+      playNextTrackAuto();
+    });
+    
     audio.addEventListener('loadedmetadata', () => { plDuration.textContent = formatTime(audio.duration); });
     
     audio.addEventListener('timeupdate', () => {
@@ -1339,7 +1380,7 @@
         }
 
         if (genFilesExisting.length > 0) {
-          genFilesExisting.forEach(f => {
+          genFilesExisting.appendTracks = genFilesExisting.forEach(f => {
             album.tracks.push({
               title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
               src: 'Muzyka/' + f.file.name,
