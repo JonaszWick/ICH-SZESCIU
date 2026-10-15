@@ -687,7 +687,6 @@
     }
 
     // Rozbija string autorów po przecinku, normalizuje, usuwa duplikaty (case-insensitive)
-    // Zwraca tablicę pojedynczych autorów w kolejności pierwszego wystąpienia.
     function parseAuthorsList(authorStr) {
       if (!authorStr) return [];
       const parts = String(authorStr).split(',');
@@ -705,7 +704,7 @@
       return Array.from(seen.values());
     }
 
-    // Zbiera unikalnych autorów z całego albumu (po wszystkich utworach)
+    // Zbiera unikalnych autorów z całego albumu — ZWRACA TABLICĘ
     function uniqueAuthors(tracks) {
       const seen = new Map();
       tracks.forEach(t => {
@@ -717,7 +716,7 @@
       return Array.from(seen.values());
     }
 
-    // Normalizuje string autorów do postaci "A, B, C" — bez duplikatów, bez zbędnych spacji
+    // Normalizuje string autorów do "A, B, C" — bez duplikatów
     function normalizeAuthorsString(authorStr) {
       return parseAuthorsList(authorStr).join(', ');
     }
@@ -801,7 +800,8 @@
 
         let html = '';
         albumsData.forEach(album => {
-          const authors = uniqueAuthors(album.tracks).join(', ');
+          // uniqueAuthors zwraca TABLICĘ
+          const authors = uniqueAuthors(album.tracks);
           const slug = (album.slug || '').trim();
           const slugEscaped = slug.replace(/'/g, "\\'");
           html += `
