@@ -139,26 +139,27 @@
     }
     
     .track-actions {
-      display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+      display: flex; align-items: center; gap: 12px; flex-shrink: 0;
     }
     
-    /* Obsługa obrazków dislikeoff / dislikeon */
+    /* Przycisk dislika z licznikiem obok */
+    .dislike-action-group {
+      display: flex; align-items: center; gap: 4px;
+    }
     .dislike-img-btn {
       background: transparent; border: none; cursor: pointer; padding: 2px;
-      display: flex; align-items: center; opacity: 0.6; transition: opacity 0.15s, transform 0.1s;
+      display: flex; align-items: center; opacity: 0.6; transition: opacity 0.15s;
     }
     .dislike-img-btn img { width: 20px; height: 20px; object-fit: contain; }
     .dislike-img-btn:hover { opacity: 0.9; }
     .dislike-img-btn.active { opacity: 1; }
+    .dislike-count { font-size: 12px; color: #aaa; min-width: 15px; text-align: left; }
 
+    /* Wyświetlenia z ikoną view.png */
     .stat-container {
-      display: flex; align-items: center; gap: 4px; font-size: 12px; color: #aaa;
+      display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888;
     }
     .stat-container img { width: 14px; height: 14px; object-fit: contain; }
-
-    .stats-group {
-      display: flex; align-items: center; gap: 10px; font-size: 12px; color: #888;
-    }
 
     .track-duration {
       font-size: 13px; color: #888;
@@ -671,14 +672,17 @@
     }
 
     function updateTrackUIStats(trackId) {
-      const statEl = document.getElementById(`stats_${trackId}`);
-      if (statEl && trackStats[trackId]) {
+      const statsGroup = document.getElementById(`stats_${trackId}`);
+      if (statsGroup && trackStats[trackId]) {
         const d = trackStats[trackId].dislikes || 0;
         const v = trackStats[trackId].views || 0;
-        statEl.innerHTML = `
-          <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${d}</span>
-          <span class="stat-container"><img src="view.png" alt="views">${v}</span>
-        `;
+        
+        // Licznik dislików ląduje w przycisku obok ikony, a wyświetlenia zostają osobno z ikoną view.png
+        const countSpan = statsGroup.querySelector('.dislike-count');
+        const viewsSpan = statsGroup.querySelector('.views-count');
+        
+        if (countSpan) countSpan.textContent = d;
+        if (viewsSpan) viewsSpan.textContent = v;
       }
     }
 
@@ -716,8 +720,8 @@
               <strong>#${index + 1}. ${escapeHtml(foundTitle)}</strong>
               ${foundAlbum ? `<div style="font-size:11px; color:#888;">Album: ${escapeHtml(foundAlbum)}</div>` : ''}
             </div>
-            <div style="font-size: 13px; color: #f66; display:flex; gap:10px; align-items:center;">
-              <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${row.dislikes}</span>
+            <div style="font-size: 13px; color: #f66; display:flex; gap:12px; align-items:center;">
+              <span style="display:flex; align-items:center; gap:4px;"><img src="dislikeoff.png" style="width:16px; height:16px;" alt="dislike">${row.dislikes}</span>
               <span class="stat-container"><img src="view.png" alt="views">${row.views}</span>
             </div>
           </li>
@@ -934,14 +938,17 @@
               <span class="track-title">${escapeHtml(track.title)}</span>
               ${trackAuthor ? `<span class="track-author">${escapeHtml(trackAuthor)}</span>` : ''}
             </div>
-            <div class="track-actions">
-              <div class="stats-group" id="stats_${trackId}">
-                <span class="stat-container"><img src="dislikeoff.png" alt="dislike">${stats.dislikes}</span>
-                <span class="stat-container"><img src="view.png" alt="views">${stats.views}</span>
+            <div class="track-actions" id="stats_${trackId}">
+              <!-- Przycisk dislika z licznikiem -->
+              <div class="dislike-action-group">
+                <button class="dislike-img-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Daj/cofnij dislike">
+                  <img src="${isDisliked ? 'dislikeon.png' : 'dislikeoff.png'}" alt="Dislike">
+                </button>
+                <span class="dislike-count">${stats.dislikes}</span>
               </div>
-              <button class="dislike-img-btn ${isDisliked ? 'active' : ''}" onclick="handleDislike('${track.src.replace(/'/g, "\\'")}', this)" title="Daj/cofnij dislike">
-                <img src="${isDisliked ? 'dislikeon.png' : 'dislikeoff.png'}" alt="Dislike">
-              </button>
+              <!-- Licznik wyświetleń -->
+              <span class="stat-container"><img src="view.png" alt="views"><span class="views-count">${stats.views}</span></span>
+              
               <span class="track-duration" data-src="${encodeURI(track.src)}" onclick="playTrack(${idx})">--:--</span>
             </div>
           </li>
