@@ -240,5 +240,81 @@
       }
     ],
     "bgImage": "baktierrrra.png"
+  },
+  {
+    "title": "EUROPOP",
+    "slug": "Europop",
+    "year": "2026",
+    "cover": "EUROPOP.png",
+    "tracks": [
+      {
+        "title": "1. Crazy La Kaka",
+        "src": "Muzyka/crazy la kaka.mp3"
+      },
+      {
+        "title": "2. Man Made Marmolade",
+        "src": "Muzyka/manmade marmolade1 (1).mp3"
+      },
+      {
+        "title": "3. Freaky Aiden",
+        "src": "Muzyka/fraky eden.mp3"
+      },
+      {
+        "title": "4. Penis Music",
+        "src": "Muzyka/Penis Music.m4a"
+      },
+      {
+        "title": "5. Eat My Shit",
+        "src": "Muzyka/eat my shitt4.mp3"
+      },
+      {
+        "title": "6. SONDO",
+        "src": "Muzyka/SONDO(2).mp3"
+      },
+      {
+        "title": "7. Niech Żyje Robota",
+        "src": "Muzyka/niech żyje robota.mp3"
+      },
+      {
+        "title": "8. I Dont Want To Study",
+        "src": "Muzyka/i dont want to study.mp3"
+      },
+      {
+        "title": "9. Belly Dancer",
+        "src": "Muzyka/belly_dancer(1).mp3"
+      },
+      {
+        "title": "10. The Ballad Of Johnny With A Metal Balls",
+        "src": "Muzyka/Ballad Of Johnny With A Metal Balls.mp3"
+      },
+      {
+        "title": "Surrender",
+        "src": "Muzyka/surender 2.mp3"
+      },
+      {
+        "title": "Mr bamboo",
+        "src": "Muzyka/mr bamboo1.mp3"
+      },
+      {
+        "title": "Truth Been Told",
+        "src": "Muzyka/truth been told.mp3"
+      },
+      {
+        "title": "Piotr Paweł",
+        "src": "Muzyka/piotr paweł (1).mp3"
+      },
+      {
+        "title": "Dont Get Caught",
+        "src": "Muzyka/don't get caught.mp3"
+      },
+      {
+        "title": "Maczuga",
+        "src": "Muzyka/maczuga czuga.mp3"
+      },
+      {
+        "title": "Surrender (Slowed+Reverb)",
+        "src": "Muzyka/suredner slowed reverb (1).mp3"
+      }
+    ]
   }
 ]
