@@ -224,16 +224,19 @@
         "author": "CichyZabójcaMURDERER"
       },
       {
-        "title": "Mediwal Bakteria",
-        "src": "Muzyka/medival bakteria.wav"
+        "title": "15. Mediwal Bakteria",
+        "src": "Muzyka/medival bakteria.wav",
+        "author": "JanuszWick"
       },
       {
-        "title": "CWEL BIT",
-        "src": "Muzyka/Cwel bit.mp3"
+        "title": "16. CWEL BIT",
+        "src": "Muzyka/Cwel bit.mp3",
+        "author": "JanuszWick"
       },
       {
-        "title": "EAR RAPING",
-        "src": "Muzyka/EAR RAPING.mp3"
+        "title": "17. EAR RAPING",
+        "src": "Muzyka/EAR RAPING.mp3",
+        "author": "CichyZabójcaMURDERER"
       }
     ],
     "bgImage": "baktierrrra.png"
