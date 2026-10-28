@@ -164,7 +164,70 @@
       font-variant-numeric: tabular-nums; flex-shrink: 0; cursor: pointer;
     }
 
-    #opis p { font-size: 18px; color: #ffffff; text-align: center; }
+    /* ============ SEKCJA OPIS I PROFILY ============ */
+    #opis { text-align: center; }
+    #opis > p { font-size: 18px; color: #ffffff; margin-bottom: 30px; }
+    
+    .profiles-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+      width: 100%;
+    }
+
+    .profile-card {
+      border: 1px solid #333333;
+      background-color: #050505;
+      padding: 20px;
+      text-align: left;
+    }
+
+    .profile-header {
+      display: flex;
+      gap: 20px;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px solid #222;
+      padding-bottom: 15px;
+    }
+
+    .profile-avatar {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      background: #111;
+      border: 1px solid #444;
+      flex-shrink: 0;
+    }
+
+    .profile-title-area h3 {
+      font-size: 20px;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .profile-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .profile-table th, .profile-table td {
+      border: 1px solid #222;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    .profile-table th {
+      color: #888;
+      width: 40%;
+      font-weight: normal;
+    }
+
+    .profile-table td {
+      color: #fff;
+    }
+
     .error-msg { text-align: center; color: #f66; padding: 40px 0; }
 
     /* ============ NIEBEZPIECZNE PLIKI ============ */
@@ -459,6 +522,9 @@
     <section id="opis" class="content-section">
       <h2 class="section-title">Opis</h2>
       <p>jestesmy zjebami i chuj</p>
+      <div class="profiles-grid" id="profiles-container">
+        <!-- Profile będą ładowane automatycznie z pliku JSON -->
+      </div>
     </section>
 
     <section id="single-album-view">
@@ -519,6 +585,7 @@
       <div class="gen-tabs">
         <button class="gen-tab active" onclick="switchTab('new')">➕ Nowy album</button>
         <button class="gen-tab" onclick="switchTab('existing')">🎵 Edytuj utwory</button>
+        <button class="gen-tab" onclick="switchTab('profiles')">👤 Profile (4 os.)</button>
         <button class="gen-tab" onclick="switchTab('order')">↕️ Kolejność albumów</button>
       </div>
 
@@ -554,6 +621,11 @@
         </div>
       </div>
 
+      <div class="gen-panel" id="panel-profiles">
+        <h3 style="color:#fff; font-size:14px; margin-bottom:10px;">Edycja 4 Profili Zespołu</h3>
+        <div id="gen-profiles-editor"></div>
+      </div>
+
       <div class="gen-panel" id="panel-order">
         <div class="gen-albums-order-list" id="gen-albums-order-list"></div>
       </div>
@@ -571,7 +643,9 @@
   <div class="gen-toast" id="gen-toast">✅ Skopiowano!</div>
 
   <script>
+    let siteData = { albums: [], profiles: [] };
     let albumsData = [];
+    let profilesData = [];
     let genFiles = [];
     let genFilesExisting = [];
     let existingAuthors = {};
@@ -582,12 +656,76 @@
     let currentPlayingSrc = null;
     let viewRecordedForCurrentTrack = false;
 
+    // Domyślne 4 profile jeśli plik ich nie zawiera
+    const defaultProfiles = [
+      {
+        id: "JanuszWick",
+        nazwaKafelka: "JanuszWick",
+        zdjecie: "janusz.png",
+        imie: "Eliasz Zygielbojm",
+        wzrost: "178cm",
+        waga: "82kg",
+        bmi: "25.88",
+        pesel: "20116706106",
+        dlugoscWlosow: "24",
+        kolorOczu: "niebieski",
+        iloscPalcy: "10",
+        adresZamieszkania: "Weteranów 69 Radzymin 05-250 Polska",
+        numerTelefonu: "0(700) 880 717"
+      },
+      {
+        id: "Dwupak",
+        nazwaKafelka: "Dwupak",
+        zdjecie: "dwupak.png",
+        imie: "cezary szwindel",
+        wzrost: "0,0000000000000012 mil morskich",
+        waga: "324 000 karatow",
+        bmi: "20",
+        pesel: "77100826942",
+        dlugoscWlosow: "1",
+        kolorOczu: "rzułty",
+        iloscPalcy: "10",
+        adresZamieszkania: "16 Soutine St., Tel Awiw 6468408",
+        numerTelefonu: "112"
+      },
+      {
+        id: "CichyZabójcaMURDERER",
+        nazwaKafelka: "CichyZabójcaMURDERER",
+        zdjecie: "cichy.png",
+        imie: "Czypa Penda",
+        wzrost: "186cm",
+        waga: "73kg",
+        bmi: "21,1",
+        pesel: "23509871235",
+        dlugoscWlosow: "łysy",
+        kolorOczu: "Piwny lecz w zime zielony",
+        iloscPalcy: "21",
+        adresZamieszkania: "Feta w piździe, Kreta, Grecja",
+        numerTelefonu: "116111"
+      },
+      {
+        id: "Tutel",
+        nazwaKafelka: "Tutel",
+        zdjecie: "tutel.png",
+        imie: "Tutel",
+        wzrost: "163 cm",
+        waga: "98 kg",
+        bmi: "niedowaga",
+        pesel: "74021753894",
+        dlugoscWlosow: "na jeża",
+        kolorOczu: "nie wiem bo jestem ślepy",
+        iloscPalcy: "19",
+        adresZamieszkania: "82-522 Kaniczki",
+        numerTelefonu: "48+ 254549330"
+      }
+    ];
+
     function getTrackId(src) {
       return btoa(unescape(encodeURIComponent(src))).replace(/[^a-zA-Z0-9]/g, '_');
     }
 
     function escapeHtml(str) {
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     function parseAuthorsList(authorStr) {
@@ -882,14 +1020,25 @@
       history.back();
     }
 
-    // ==================== ŁADOWANIE ALBUMÓW =====================
+    // ==================== ŁADOWANIE DANYCH (ALBUMY I PROFILE) =====================
 
-    async function loadAlbums() {
+    async function loadData() {
       const container = document.getElementById('albums-container');
       try {
         const res = await fetch('albums.json?' + Date.now());
         if (!res.ok) throw new Error('Nie znaleziono albums.json');
-        albumsData = await res.json();
+        const json = await res.json();
+
+        // Wsparcie dla struktury tablicowej lub obiektowej
+        if (Array.isArray(json)) {
+          albumsData = json;
+          profilesData = JSON.parse(JSON.stringify(defaultProfiles));
+        } else {
+          albumsData = json.albums || [];
+          profilesData = (json.profiles && json.profiles.length) ? json.profiles : JSON.parse(JSON.stringify(defaultProfiles));
+        }
+
+        renderProfilesView();
 
         if (!albumsData.length) {
           container.innerHTML = '<p style="text-align:center; color:#888;">Brak albumów.</p>';
@@ -925,8 +1074,43 @@
           document.getElementById('dyskografia').classList.add('active');
         }
       } catch (err) {
-        container.innerHTML = '<p style="text-align:center; color:#f66;">Błąd ładowania albumów: ' + escapeHtml(err.message) + '</p>';
+        // Jeśli plik nie istnieje lub jest błąd, załaduj domyślne profile
+        profilesData = JSON.parse(JSON.stringify(defaultProfiles));
+        renderProfilesView();
+        container.innerHTML = '<p style="text-align:center; color:#f66;">Błąd ładowania danych: ' + escapeHtml(err.message) + '</p>';
       }
+    }
+
+    function renderProfilesView() {
+      const container = document.getElementById('profiles-container');
+      if (!container) return;
+      
+      let html = '';
+      profilesData.forEach(p => {
+        html += `
+          <div class="profile-card">
+            <div class="profile-header">
+              <img src="${encodeURI(p.zdjecie || '')}" alt="${escapeHtml(p.nazwaKafelka)}" class="profile-avatar" onerror="this.src=''">
+              <div class="profile-title-area">
+                <h3>${escapeHtml(p.nazwaKafelka)}</h3>
+              </div>
+            </div>
+            <table class="profile-table">
+              <tr><th>Imię</th><td>${escapeHtml(p.imie)}</td></tr>
+              <tr><th>Wzrost</th><td>${escapeHtml(p.wzrost)}</td></tr>
+              <tr><th>Waga</th><td>${escapeHtml(p.waga)}</td></tr>
+              <tr><th>BMI</th><td>${escapeHtml(p.bmi)}</td></tr>
+              <tr><th>Pesel</th><td>${escapeHtml(p.pesel)}</td></tr>
+              <tr><th>Długość włosów</th><td>${escapeHtml(p.dlugoscWlosow)}</td></tr>
+              <tr><th>Kolor oczu</th><td>${escapeHtml(p.kolorOczu)}</td></tr>
+              <tr><th>Ilość palcy</th><td>${escapeHtml(p.iloscPalcy)}</td></tr>
+              <tr><th>Adres zamieszkania</th><td>${escapeHtml(p.adresZamieszkania)}</td></tr>
+              <tr><th>Numer telefonu</th><td>${escapeHtml(p.numerTelefonu)}</td></tr>
+            </table>
+          </div>
+        `;
+      });
+      container.innerHTML = html;
     }
 
     async function renderSingleAlbum(slug, push = true) {
@@ -1183,6 +1367,7 @@
       document.getElementById('generator-modal').classList.add('open');
       refreshExistingSelect();
       refreshExistingEditor();
+      refreshProfilesEditor();
       refreshAlbumsOrderList();
       document.body.style.overflow = 'hidden';
     }
@@ -1206,8 +1391,12 @@
         document.getElementById('panel-existing').classList.add('active');
         refreshExistingSelect();
         refreshExistingEditor();
-      } else if (tab === 'order') {
+      } else if (tab === 'profiles') {
         document.querySelectorAll('.gen-tab')[2].classList.add('active');
+        document.getElementById('panel-profiles').classList.add('active');
+        refreshProfilesEditor();
+      } else if (tab === 'order') {
+        document.querySelectorAll('.gen-tab')[3].classList.add('active');
         document.getElementById('panel-order').classList.add('active');
         refreshAlbumsOrderList();
       }
@@ -1296,7 +1485,7 @@
         row.innerHTML = `
           <span style="font-size:11px; color:#666;">${tIdx + 1}.</span>
           <input type="text" value="${escapeHtml(existingTitles[albumIdx][tIdx])}" oninput="existingTitles[${albumIdx}][${tIdx}] = this.value" placeholder="Tytuł">
-          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[albumIdx][${tIdx}] = this.value" placeholder="Autorzy">
+          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[${albumIdx}][${tIdx}] = this.value" placeholder="Autorzy">
           <div style="display:flex; gap:3px;">
             ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)">▲</button>` : ''}
             ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)">▼</button>` : ''}
@@ -1305,6 +1494,60 @@
         `;
         container.appendChild(row);
       });
+    }
+
+    function refreshProfilesEditor() {
+      const container = document.getElementById('gen-profiles-editor');
+      if (!container) return;
+
+      if (!profilesData || profilesData.length === 0) {
+        profilesData = JSON.parse(JSON.stringify(defaultProfiles));
+      }
+
+      let html = '';
+      profilesData.forEach((p, idx) => {
+        html += `
+          <div style="border:1px solid #333; padding:15px; margin-bottom:15px; background:#050505;">
+            <h4 style="color:#1db954; font-size:14px; margin-bottom:10px;">Profil #${idx + 1}: ${escapeHtml(p.nazwaKafelka || 'Bez nazwy')}</h4>
+            <label>Nazwa profilu (Kkafelek)</label>
+            <input type="text" value="${escapeHtml(p.nazwaKafelka)}" oninput="profilesData[${idx}].nazwaKafelka = this.value">
+            
+            <label>Zdjęcie profilowe (plik lub ścieżka)</label>
+            <input type="text" value="${escapeHtml(p.zdjecie)}" oninput="profilesData[${idx}].zdjecie = this.value">
+
+            <label>1. Imię</label>
+            <input type="text" value="${escapeHtml(p.imie)}" oninput="profilesData[${idx}].imie = this.value">
+
+            <label>2. Wzrost</label>
+            <input type="text" value="${escapeHtml(p.wzrost)}" oninput="profilesData[${idx}].wzrost = this.value">
+
+            <label>3. Waga</label>
+            <input type="text" value="${escapeHtml(p.waga)}" oninput="profilesData[${idx}].waga = this.value">
+
+            <label>4. BMI</label>
+            <input type="text" value="${escapeHtml(p.bmi)}" oninput="profilesData[${idx}].bmi = this.value">
+
+            <label>5. Pesel</label>
+            <input type="text" value="${escapeHtml(p.pesel)}" oninput="profilesData[${idx}].pesel = this.value">
+
+            <label>6. Długość włosów</label>
+            <input type="text" value="${escapeHtml(p.dlugoscWlosow)}" oninput="profilesData[${idx}].dlugoscWlosow = this.value">
+
+            <label>7. Kolor oczu</label>
+            <input type="text" value="${escapeHtml(p.kolorOczu)}" oninput="profilesData[${idx}].kolorOczu = this.value">
+
+            <label>8. Ilość palcy</label>
+            <input type="text" value="${escapeHtml(p.iloscPalcy)}" oninput="profilesData[${idx}].iloscPalcy = this.value">
+
+            <label>9. Adres zamieszkania</label>
+            <input type="text" value="${escapeHtml(p.adresZamieszkania)}" oninput="profilesData[${idx}].adresZamieszkania = this.value">
+
+            <label>10. Numer telefonu</label>
+            <input type="text" value="${escapeHtml(p.numerTelefonu)}" oninput="profilesData[${idx}].numerTelefonu = this.value">
+          </div>
+        `;
+      });
+      container.innerHTML = html;
     }
 
     function moveTrack(albumIdx, tIdx, direction) {
@@ -1375,7 +1618,6 @@
         const newAlbum = { title, slug, year, cover };
         if (bgImage) newAlbum.bgImage = bgImage;
         
-        // Zapisywanie utworów wraz z autorami z zakładki "Nowy album"
         newAlbum.tracks = genFiles.map(f => {
           const authorFormatted = normalizeAuthorsString(f.author);
           return {
@@ -1425,7 +1667,13 @@
         }
       }
 
-      out.value = JSON.stringify(albumsData, null, 2);
+      // Pakujemy zarówno albumy, jak i profile do struktury JSON
+      const finalOutputObject = {
+        albums: albumsData,
+        profiles: profilesData
+      };
+
+      out.value = JSON.stringify(finalOutputObject, null, 2);
     }
 
     async function copyOutput() {
@@ -1449,7 +1697,7 @@
       setTimeout(() => toast.classList.remove('show'), 1800);
     }
 
-    window.addEventListener('DOMContentLoaded', () => { loadAlbums(); });
+    window.addEventListener('DOMContentLoaded', () => { loadData(); });
   </script>
 
 </body>
