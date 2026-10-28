@@ -1296,7 +1296,7 @@
         row.innerHTML = `
           <span style="font-size:11px; color:#666;">${tIdx + 1}.</span>
           <input type="text" value="${escapeHtml(existingTitles[albumIdx][tIdx])}" oninput="existingTitles[${albumIdx}][${tIdx}] = this.value" placeholder="Tytuł">
-          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[${albumIdx}][${tIdx}] = this.value" placeholder="Autorzy">
+          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[albumIdx][${tIdx}] = this.value" placeholder="Autorzy">
           <div style="display:flex; gap:3px;">
             ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)">▲</button>` : ''}
             ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)">▼</button>` : ''}
@@ -1374,11 +1374,17 @@
         const bgImage = document.getElementById('gen-bgimage').value.trim();
         const newAlbum = { title, slug, year, cover };
         if (bgImage) newAlbum.bgImage = bgImage;
-        newAlbum.tracks = genFiles.map(f => ({
-          title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
-          src: 'Muzyka/' + f.file.name,
-          ...(normalizeAuthorsString(f.author) ? { author: normalizeAuthorsString(f.author) } : {})
-        }));
+        
+        // Zapisywanie utworów wraz z autorami z zakładki "Nowy album"
+        newAlbum.tracks = genFiles.map(f => {
+          const authorFormatted = normalizeAuthorsString(f.author);
+          return {
+            title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
+            src: 'Muzyka/' + f.file.name,
+            ...(authorFormatted ? { author: authorFormatted } : {})
+          };
+        });
+
         albumsData.push(newAlbum);
         document.getElementById('gen-title').value = '';
         document.getElementById('gen-slug').value = '';
@@ -1407,10 +1413,11 @@
 
         if (genFilesExisting.length > 0) {
           genFilesExisting.forEach(f => {
+            const authorFormatted = normalizeAuthorsString(f.author);
             album.tracks.push({
               title: f.title || f.file.name.replace(/\.[^/.]+$/, ''),
               src: 'Muzyka/' + f.file.name,
-              ...(normalizeAuthorsString(f.author) ? { author: normalizeAuthorsString(f.author) } : {})
+              ...(authorFormatted ? { author: authorFormatted } : {})
             });
           });
           genFilesExisting = [];
