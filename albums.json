@@ -333,5 +333,48 @@
         "author": "Tutel"
       }
     ]
+  },
+  {
+    "title": "Alien Invasion 51",
+    "slug": "alien-invasion",
+    "year": "2026",
+    "cover": "alien_invasion.png",
+    "tracks": [
+      {
+        "title": "1. Human extermination",
+        "src": "Muzyka/human extermination.mp3",
+        "author": "Tutel"
+      },
+      {
+        "title": "2. Alien hip hop",
+        "src": "Muzyka/alien hip hop.mp3",
+        "author": "Dwupak"
+      },
+      {
+        "title": "3. Im a fucking alien",
+        "src": "Muzyka/Im a fucking alien.mp3",
+        "author": "CichyZabójcaMURDERER"
+      },
+      {
+        "title": "4. Me and my ufo",
+        "src": "Muzyka/me and my ufo.mp3",
+        "author": "Tutel"
+      },
+      {
+        "title": "5. Kepler",
+        "src": "Muzyka/Kepler.mp3",
+        "author": "CichyZabójcaMURDERER"
+      },
+      {
+        "title": "6. Alien Slime",
+        "src": "Muzyka/kosmiczny szlam.mp3",
+        "author": "Tutel, CichyZabójcaMURDERER"
+      },
+      {
+        "title": "7. Human music",
+        "src": "Muzyka/human music.mp3",
+        "author": "Dwupak, CichyZabójcaMURDERER, Tutel"
+      }
+    ]
   }
 ]
