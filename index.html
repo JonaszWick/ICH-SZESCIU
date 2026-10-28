@@ -1296,7 +1296,7 @@
         row.innerHTML = `
           <span style="font-size:11px; color:#666;">${tIdx + 1}.</span>
           <input type="text" value="${escapeHtml(existingTitles[albumIdx][tIdx])}" oninput="existingTitles[${albumIdx}][${tIdx}] = this.value" placeholder="Tytuł">
-          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[albumIdx][${tIdx}] = this.value" placeholder="Autorzy">
+          <input type="text" value="${escapeHtml(existingAuthors[albumIdx][tIdx])}" oninput="existingAuthors[${albumIdx}][${tIdx}] = this.value" placeholder="Autorzy">
           <div style="display:flex; gap:3px;">
             ${tIdx > 0 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, -1)">▲</button>` : ''}
             ${tIdx < album.tracks.length - 1 ? `<button class="gen-btn-sm" onclick="moveTrack(${albumIdx},${tIdx}, 1)">▼</button>` : ''}
