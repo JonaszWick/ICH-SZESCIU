@@ -20,6 +20,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      position: relative; /* Wymagane, aby oczy pozycjonowały się względem strony, a nie ekranu */
     }
 
     main {
@@ -277,13 +278,14 @@
 
     /* ============ ANIMACJA OCZU (ALIEN INVASION) ============ */
     .eye-container {
-      position: fixed;
+      position: absolute; /* Przypisane do strony, a nie ekranu (zostają przy scrollowaniu) */
       z-index: 2;
       pointer-events: none;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
+      opacity: 0.85; /* <--- TUTAJ MOŻESZ ZMIENIĆ OPACITY OCZU (od 0.0 do 1.0) */
     }
 
     .eye-img {
@@ -1019,7 +1021,7 @@
       floatingRafId = requestAnimationFrame(step);
     }
 
-    // ==================== SYSTEM OCZU (TYLKO ALIEN-INVASION) =====================
+    // ==================== SYSTEM OCZU (5 SZTUK, TYLKO ALIEN-INVASION) =====================
 
     let eyeInterval = null;
 
@@ -1033,25 +1035,36 @@
 
     function startEyes() {
       stopEyes();
-      setTimeout(spawnEye, 1000);
-      eyeInterval = setInterval(spawnEye, 10000);
+      spawnEyesBatch();
+      eyeInterval = setInterval(spawnEyesBatch, 10000);
     }
 
-    function spawnEye() {
+    function spawnEyesBatch() {
       if (getSlugFromURL().toLowerCase() !== 'alien-invasion') {
         stopEyes();
         return;
       }
 
+      // Generujemy dokładnie 5 oczu
+      for (let i = 0; i < 5; i++) {
+        spawnSingleEye();
+      }
+    }
+
+    function spawnSingleEye() {
       // Rozmiar: od 60px do max 160px (nie większe niż bakterie)
       const minSize = 60;
       const maxSize = 160;
       const size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
 
-      const maxX = Math.max(0, window.innerWidth - size);
-      const maxY = Math.max(0, window.innerHeight - size);
-      const x = Math.floor(Math.random() * maxX);
-      const y = Math.floor(Math.random() * maxY);
+      // Pozycja względna do całej wysokości i szerokości strony (aby scrollowanie działało poprawnie)
+      const pageHeight = Math.max(document.body.scrollHeight, window.innerHeight);
+      const pageWidth = window.innerWidth;
+
+      const maxX = Math.max(0, pageWidth - size - 40);
+      const maxY = Math.max(0, pageHeight - size - 150);
+      const x = Math.floor(Math.random() * maxX) + 20;
+      const y = Math.floor(Math.random() * maxY) + 20;
 
       const container = document.createElement('div');
       container.className = 'eye-container';
