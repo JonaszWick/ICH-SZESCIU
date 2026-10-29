@@ -262,6 +262,54 @@
       padding: 12px 10px; border-bottom: 1px solid #111; font-size: 14px;
     }
     .top-item:hover { background: #0f0f0f; }
+    
+    /* ==================== ANIMACJA OCZU ==================== */
+.eye-container {
+  position: fixed;
+  z-index: 2; /* pod elementami interfejsu (z-index: 10), ale nad/obok tła */
+  pointer-events: none;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.eye-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* Czarne powiek otwierające się w górę i w dół */
+.eye-lid {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 50.5%;
+  background-color: #000000;
+  transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 3;
+}
+
+.eye-lid.top {
+  top: 0;
+  transform-origin: top;
+}
+
+.eye-lid.bottom {
+  bottom: 0;
+  transform-origin: bottom;
+}
+
+/* Klasa aktywująca otwarcie oka */
+.eye-container.open .eye-lid.top {
+  transform: translateY(-100%);
+}
+
+.eye-container.open .eye-lid.bottom {
+  transform: translateY(100%);
+}
 
     /* ============ LATAJĄCE OBRAZKI ===================== */
     #floating-layer {
@@ -1354,6 +1402,66 @@
     plMute.addEventListener('click', () => { volume = volume > 0 ? 0 : (lastVolume || 1); applyVolume(); });
     applyVolume();
 
+
+    // ==================== SYSTEM LOSOWYCH OCZU ====================
+
+function spawnEye() {
+  // Rozmiar latających bakterii to max 160px (zatem rozmiar oka będzie od 60px do 160px)
+  const minSize = 60;
+  const maxSize = 160;
+  const size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
+
+  // Losowe pozycje na ekranie z uwzględnieniem marginesu
+  const maxX = Math.max(0, window.innerWidth - size);
+  const maxY = Math.max(0, window.innerHeight - size);
+  const x = Math.floor(Math.random() * maxX);
+  const y = Math.floor(Math.random() * maxY);
+
+  // Tworzenie kontenera oka
+  const container = document.createElement('div');
+  container.className = 'eye-container';
+  container.style.width = size + 'px';
+  container.style.height = size + 'px';
+  container.style.left = x + 'px';
+  container.style.top = y + 'px';
+
+  // Obrazek oka
+  const img = document.createElement('img');
+  img.src = 'oczyoczy.png';
+  img.className = 'eye-img';
+  img.alt = 'oko';
+
+  // Czarna powieka górna i dolna
+  const lidTop = document.createElement('div');
+  lidTop.className = 'eye-lid top';
+
+  const lidBottom = document.createElement('div');
+  lidBottom.className = 'eye-lid bottom';
+
+  container.appendChild(img);
+  container.appendChild(lidTop);
+  container.appendChild(lidBottom);
+  document.body.appendChild(container);
+
+  // Otwarcie oka po krótkiej chwili
+  setTimeout(() => {
+    container.classList.add('open');
+  }, 100);
+
+  // Zamknięcie oka i usunięcie z DOM
+  setTimeout(() => {
+    container.classList.remove('open');
+    setTimeout(() => {
+      if (container.parentNode) {
+        container.parentNode.removeChild(container);
+      }
+    }, 800); // Czas trwania przejścia CSS (0.8s)
+  }, 3500); // Oko pozostaje otwarte przez 3.5 sekundy
+}
+
+// Uruchamianie otwierania oka dokładnie co 10 sekund
+setInterval(spawnEye, 10000);
+    
     // ==================== GENERATOR (6969) =====================
 
     let typed = '';
