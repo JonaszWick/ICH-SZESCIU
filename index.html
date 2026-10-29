@@ -20,7 +20,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      position: relative; /* Wymagane, aby oczy pozycjonowały się względem strony, a nie ekranu */
+      position: relative;
     }
 
     main {
@@ -278,14 +278,14 @@
 
     /* ============ ANIMACJA OCZU (ALIEN INVASION) ============ */
     .eye-container {
-      position: absolute; /* Przypisane do strony, a nie ekranu (zostają przy scrollowaniu) */
+      position: absolute;
       z-index: 2;
       pointer-events: none;
       overflow: hidden;
       display: flex;
       justify-content: center;
       align-items: center;
-      opacity: 0.1; /* <--- TUTAJ MOŻESZ ZMIENIĆ OPACITY OCZU (od 0.0 do 1.0) */
+      opacity: 0.85;
     }
 
     .eye-img {
@@ -404,13 +404,14 @@
     .seek-bar:hover .seek-handle { transform: translate(-50%, -50%) scale(1); }
 
     .player-right {
-      display: flex; align-items: center; gap: 6px;
-      flex: 0 0 auto; width: 150px;
+      display: flex; align-items: center; gap: 8px;
+      flex: 0 0 auto; width: auto;
     }
     .player-btn.vol-btn { padding: 2px; }
     .player-btn.vol-btn svg { width: 20px; height: 20px; }
+    
     .volume-bar {
-      flex: 1; height: 16px; display: flex;
+      width: 80px; height: 16px; display: flex;
       align-items: center; position: relative; cursor: pointer;
     }
     .volume-track {
@@ -428,6 +429,30 @@
       transform: translate(-50%, -50%) scale(0); pointer-events: none;
     }
     .volume-bar:hover .volume-handle { transform: translate(-50%, -50%) scale(1); }
+
+    /* Przycisk Bass Boost / Ear Rape */
+    .bass-boost-btn {
+      background: #111;
+      color: #888;
+      border: 1px solid #333;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .bass-boost-btn:hover {
+      border-color: #666;
+      color: #fff;
+    }
+    .bass-boost-btn.active {
+      background: #500000;
+      color: #ff3333;
+      border-color: #ff3333;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+    }
 
     /* ==================== GENERATOR STYLES ==================== */
     #generator-modal {
@@ -628,10 +653,11 @@
           <div class="volume-handle" id="pl-volume-handle"></div>
         </div>
       </div>
+      <button class="bass-boost-btn" id="pl-bass-btn" onclick="toggleBassBoost()">BASS BOOST</button>
     </div>
   </div>
 
-  <audio id="audio-el" preload="metadata"></audio>
+  <audio id="audio-el" crossorigin="anonymous" preload="metadata"></audio>
 
   <!-- ==================== GENERATOR MODAL ==================== -->
   <div id="generator-modal">
@@ -712,6 +738,15 @@
     let currentTrackIndex = -1;
     let currentPlayingSrc = null;
     let viewRecordedForCurrentTrack = false;
+
+    // Web Audio API dla Bass Boost / Ear Rape
+    let audioCtx = null;
+    let audioSourceNode = null;
+    let bassFilter = null;
+    let midFilter = null;
+    let distortionNode = null;
+    let gainNode = null;
+    let isBassBoostActive = false;
 
     // Domyślne 4 profile wraz z nowymi opisami
     const defaultProfiles = [
@@ -961,7 +996,7 @@
     let floatingItems = [];
 
     function stopFloating() {
-      stopEyes(); // Zatrzymuje oczy przy zmianie albumu
+      stopEyes();
       if (floatingRafId) { cancelAnimationFrame(floatingRafId); floatingRafId = null; }
       floatingItems = [];
       const layer = document.getElementById('floating-layer');
@@ -1045,19 +1080,16 @@
         return;
       }
 
-      // Generujemy dokładnie 5 oczu
       for (let i = 0; i < 5; i++) {
         spawnSingleEye();
       }
     }
 
     function spawnSingleEye() {
-      // Rozmiar: od 60px do max 160px (nie większe niż bakterie)
       const minSize = 60;
       const maxSize = 160;
       const size = Math.floor(Math.random() * (maxSize - minSize + 1)) + minSize;
 
-      // Pozycja względna do całej wysokości i szerokości strony (aby scrollowanie działało poprawnie)
       const pageHeight = Math.max(document.body.scrollHeight, window.innerHeight);
       const pageWidth = window.innerWidth;
 
@@ -1334,7 +1366,7 @@
       });
     }
 
-    // ==================== PLAYER =====================
+    // ==================== PLAYER & BASS BOOST (EAR RAPE) =====================
 
     const audio = document.getElementById('audio-el');
     const playerEl = document.getElementById('player');
@@ -1355,8 +1387,86 @@
     const plVolume = document.getElementById('pl-volume');
     const plVolFill = document.getElementById('pl-volume-fill');
     const plVolHandle = document.getElementById('pl-volume-handle');
+    const plBassBtn = document.getElementById('pl-bass-btn');
+
+    // Inicjalizacja Web Audio API
+    function initAudioContext() {
+      if (audioCtx) return;
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+        
+        audioSourceNode = audioCtx.createMediaElementSource(audio);
+        
+        // Filtry i Distortion
+        bassFilter = audioCtx.createBiquadFilter();
+        bassFilter.type = 'lowshelf';
+        bassFilter.frequency.setValueAtTime(250, audioCtx.currentTime);
+        bassFilter.gain.setValueAtTime(0, audioCtx.currentTime);
+
+        midFilter = audioCtx.createBiquadFilter();
+        midFilter.type = 'peaking';
+        midFilter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+        midFilter.gain.setValueAtTime(0, audioCtx.currentTime);
+
+        distortionNode = audioCtx.createWaveShaper();
+        distortionNode.curve = makeDistortionCurve(0);
+
+        gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+
+        // Łączenie węzłów: Audio -> BassFilter -> MidFilter -> Distortion -> Gain -> Destination
+        audioSourceNode.connect(bassFilter);
+        bassFilter.connect(midFilter);
+        midFilter.connect(distortionNode);
+        distortionNode.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+      } catch (e) {
+        console.log('Web Audio API error:', e);
+      }
+    }
+
+    function makeDistortionCurve(amount) {
+      const k = typeof amount === 'number' ? amount : 50;
+      const n_samples = 44100;
+      const curve = new Float32Array(n_samples);
+      const deg = Math.PI / 180;
+      for (let i = 0; i < n_samples; ++i) {
+        let x = (i * 2) / n_samples - 1;
+        curve[i] = ((3 + k) * x * 20 * deg) / (Math.PI + k * Math.abs(x));
+      }
+      return curve;
+    }
+
+    function toggleBassBoost() {
+      initAudioContext();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      isBassBoostActive = !isBassBoostActive;
+
+      if (isBassBoostActive) {
+        plBassBtn.classList.add('active');
+        if (bassFilter) bassFilter.gain.setTargetAtTime(35, audioCtx.currentTime, 0.05); // Masakra basowa
+        if (midFilter) midFilter.gain.setTargetAtTime(20, audioCtx.currentTime, 0.05);
+        if (distortionNode) distortionNode.curve = makeDistortionCurve(800); // Ostry ear rape clip
+        if (gainNode) gainNode.gain.setTargetAtTime(3.0, audioCtx.currentTime, 0.05); // Głośność x3
+      } else {
+        plBassBtn.classList.remove('active');
+        if (bassFilter) bassFilter.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+        if (midFilter) midFilter.gain.setTargetAtTime(0, audioCtx.currentTime, 0.05);
+        if (distortionNode) distortionNode.curve = makeDistortionCurve(0);
+        if (gainNode) gainNode.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.05);
+      }
+    }
 
     function playAlbumTrack(albumSlug, index) {
+      initAudioContext();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
       const album = albumsData.find(a => (a.slug || '').toLowerCase() === albumSlug.toLowerCase());
       if (!album || !album.tracks[index]) return;
 
@@ -1389,6 +1499,9 @@
     }
 
     plPlay.addEventListener('click', () => {
+      initAudioContext();
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
       if (currentTrackIndex === -1) {
         if (albumsData.length && albumsData[0].tracks.length) {
           playAlbumTrack(albumsData[0].slug, 0);
